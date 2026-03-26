@@ -18,6 +18,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
   const [url, setUrl] = useState('')
   const [preview, setPreview] = useState<ArticlePreview | null>(null)
   const [pasteText, setPasteText] = useState('')
+  const [direction, setDirection] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
@@ -30,7 +31,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
       const res = await fetch('/api/fetch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url.trim() }),
+        body: JSON.stringify({ url: url.trim(), direction: direction.trim() || undefined }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to fetch article')
@@ -53,7 +54,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
       const res = await fetch('/api/fetch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url.trim(), pasteText: pasteText.trim() }),
+        body: JSON.stringify({ url: url.trim(), pasteText: pasteText.trim(), direction: direction.trim() || undefined }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to summarize')
@@ -98,6 +99,26 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
     }
   }
 
+  async function handleResummarize() {
+    if (!preview) return
+    setStep('loading')
+    try {
+      const res = await fetch('/api/fetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim(), pasteText: pasteText.trim() || undefined, direction: direction.trim() || undefined }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed to summarize')
+      // Only update bullets — preserve any manual edits to other fields
+      setPreview((p) => p ? { ...p, bullets: data.bullets } : p)
+      setStep('preview')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Something went wrong')
+      setStep('preview')
+    }
+  }
+
   function updatePreview(key: keyof ArticlePreview, value: string | string[] | boolean) {
     setPreview((p) => p ? { ...p, [key]: value } : p)
   }
@@ -127,6 +148,18 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
                   onKeyDown={(e) => e.key === 'Enter' && handleFetch()}
                   placeholder="https://..."
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Direction <span className="font-normal text-gray-400">(optional)</span>
+                </label>
+                <textarea
+                  value={direction}
+                  onChange={(e) => setDirection(e.target.value)}
+                  rows={2}
+                  placeholder={'e.g. "Surface counterarguments" or "Facts and stats only, skip the analysis"'}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
@@ -161,19 +194,33 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
                 This article appears to be paywalled. Paste the text or upload a screenshot to continue.
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Paste article text</label>
-                <textarea
-                  value={pasteText}
-                  onChange={(e) => setPasteText(e.target.value)}
-                  rows={6}
-                  placeholder="Paste the article body here…"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
-                />
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Paste article text</label>
+                  <textarea
+                    value={pasteText}
+                    onChange={(e) => setPasteText(e.target.value)}
+                    rows={6}
+                    placeholder="Paste the article body here…"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Direction <span className="font-normal text-gray-400">(optional)</span>
+                  </label>
+                  <textarea
+                    value={direction}
+                    onChange={(e) => setDirection(e.target.value)}
+                    rows={2}
+                    placeholder={'e.g. "Surface counterarguments" or "Facts and stats only, skip the analysis"'}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
+                  />
+                </div>
                 <button
                   onClick={handlePasteSubmit}
                   disabled={!pasteText.trim()}
-                  className="mt-2 w-full bg-gray-900 text-white font-medium py-2 rounded-lg hover:bg-gray-700 disabled:opacity-40 text-sm"
+                  className="w-full bg-gray-900 text-white font-medium py-2 rounded-lg hover:bg-gray-700 disabled:opacity-40 text-sm"
                 >
                   Summarize pasted text
                 </button>
@@ -265,6 +312,27 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
                   bullets={preview.bullets}
                   onChange={(b) => updatePreview('bullets', b)}
                 />
+              </div>
+
+              <div className="pt-3 border-t border-gray-100 space-y-2">
+                <label className="block text-xs font-medium text-gray-500">
+                  Direction <span className="font-normal text-gray-400">(optional — reshapes the bullets)</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={direction}
+                    onChange={(e) => setDirection(e.target.value)}
+                    placeholder={'e.g. "Counterarguments" or "Stats only"'}
+                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  />
+                  <button
+                    onClick={handleResummarize}
+                    className="shrink-0 text-sm bg-stone-100 text-stone-700 font-medium px-3 py-2 rounded-lg hover:bg-stone-200"
+                  >
+                    Re-summarize
+                  </button>
+                </div>
               </div>
 
               {error && <p className="text-sm text-red-500">{error}</p>}

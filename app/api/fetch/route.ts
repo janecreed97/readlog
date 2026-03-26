@@ -41,14 +41,17 @@ async function callGemini(prompt: string): Promise<string> {
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
 }
 
-async function summarizeWithGemini(text: string, url: string): Promise<Omit<ArticlePreview, 'is_paywalled' | 'url'>> {
+async function summarizeWithGemini(text: string, url: string, direction?: string): Promise<Omit<ArticlePreview, 'is_paywalled' | 'url'>> {
+  const directionClause = direction
+    ? `\n  Special instruction for the bullet points: ${direction}`
+    : ''
   const prompt = `Given the following article text, return a JSON object with exactly these fields:
 - title (string): the article title
 - source (string): publication name (e.g. NYT, Bloomberg, TechCrunch) — infer from URL if not in text
 - published_date (string | null): date in YYYY-MM-DD format, or null if not found
 - category (string): top-level category (e.g. Energy, Finance, Technology, Policy, Health)
 - subcategory (string): more specific sub-topic (e.g. Nuclear, Private Credit, AI, Climate)
-- bullets (array of 2-5 strings): key takeaways as concise bullet points
+- bullets (array of 2-5 strings): key takeaways as concise bullet points${directionClause}
 
 Return only valid JSON, no markdown, no explanation.
 
@@ -67,12 +70,12 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { url, pasteText } = await request.json()
+  const { url, pasteText, direction } = await request.json()
   if (!url) return NextResponse.json({ error: 'URL required' }, { status: 400 })
 
   if (pasteText?.trim()) {
     try {
-      const summary = await summarizeWithGemini(pasteText.trim(), url)
+      const summary = await summarizeWithGemini(pasteText.trim(), url, direction?.trim() || undefined)
       return NextResponse.json({ ...summary, is_paywalled: true, url } satisfies ArticlePreview)
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
@@ -114,7 +117,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const summary = await summarizeWithGemini(articleText, url)
+    const summary = await summarizeWithGemini(articleText, url, direction?.trim() || undefined)
     return NextResponse.json({ ...summary, is_paywalled: false, url } satisfies ArticlePreview)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
