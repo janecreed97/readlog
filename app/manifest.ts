@@ -15,6 +15,30 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: '180x180',
         type: 'image/png',
       },
+      {
+        src: '/icon',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        src: '/icon',
+        sizes: '512x512',
+        type: 'image/png',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        purpose: 'maskable' as any,
+      },
     ],
-  }
+    // Web Share Target — lets Alexandria appear in native share sheets on Android
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    share_target: {
+      action: '/share',
+      method: 'GET',
+      params: {
+        title: 'title',
+        text: 'text',
+        url: 'url',
+      },
+    },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any
 }
