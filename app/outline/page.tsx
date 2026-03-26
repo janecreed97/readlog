@@ -58,6 +58,8 @@ function OutlineContent() {
               <nav className="hidden sm:flex gap-4 text-sm">
                 <a href="/" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Library</a>
                 <a href="/outline" className="text-stone-900 dark:text-stone-100 font-medium">Outline</a>
+                <a href="/friends" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Friends</a>
+                <a href="/inbox" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Inbox</a>
                 <a href="/settings" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Settings</a>
               </nav>
             </div>
@@ -80,8 +82,9 @@ function OutlineContent() {
           <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
             <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Library</a>
             <a href="/outline" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-stone-100">Outline</a>
+            <a href="/friends" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Friends</a>
+            <a href="/inbox" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Inbox</a>
             <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Settings</a>
-            <button onClick={handleSignOut} className="px-4 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border-l border-gray-100 dark:border-stone-800">Sign out</button>
           </div>
         </div>
       </header>

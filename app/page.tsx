@@ -9,6 +9,7 @@ import ArticleDetail from '@/components/ArticleDetail'
 import CategoryFilter from '@/components/CategoryFilter'
 import AddArticleModal from '@/components/AddArticleModal'
 import HelpModal from '@/components/HelpModal'
+import ShareModal from '@/components/ShareModal'
 import Logo from '@/components/Logo'
 
 function LibraryContent() {
@@ -19,7 +20,9 @@ function LibraryContent() {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
+  const [shareArticle, setShareArticle] = useState<Article | null>(null)
   const [search, setSearch] = useState('')
+  const [inboxCount, setInboxCount] = useState(0)
 
   const activeCategory = params.get('category') ?? ''
   const activeSub = params.get('sub') ?? ''
@@ -33,7 +36,19 @@ function LibraryContent() {
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchArticles() }, [fetchArticles])
+  useEffect(() => {
+    fetchArticles()
+    // Fetch profile - redirect to setup if not found
+    fetch('/api/profile').then(r => r.json()).then(profile => {
+      if (profile === null) {
+        router.push('/profile/setup')
+      }
+    })
+    // Fetch inbox unread count
+    fetch('/api/inbox?unread=true').then(r => r.json()).then(data => {
+      if (data && typeof data.count === 'number') setInboxCount(data.count)
+    })
+  }, [fetchArticles, router])
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -76,6 +91,10 @@ function LibraryContent() {
               <nav className="hidden sm:flex gap-4 text-sm">
                 <a href="/" className="text-stone-900 dark:text-stone-100 font-medium">Library</a>
                 <a href="/outline" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Outline</a>
+                <a href="/friends" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Friends</a>
+                <a href="/inbox" className="relative text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                  Inbox{inboxCount > 0 && <span className="ml-1 inline-flex items-center justify-center bg-amber-500 text-white text-xs rounded-full px-1.5 py-0.5 font-medium leading-none">{inboxCount}</span>}
+                </a>
                 <a href="/settings" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Settings</a>
               </nav>
             </div>
@@ -98,8 +117,9 @@ function LibraryContent() {
           <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
             <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-stone-100">Library</a>
             <a href="/outline" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Outline</a>
+            <a href="/friends" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Friends</a>
+            <a href="/inbox" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Inbox</a>
             <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Settings</a>
-            <button onClick={handleSignOut} className="px-4 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border-l border-gray-100 dark:border-stone-800">Sign out</button>
           </div>
         </div>
       </header>
@@ -153,6 +173,7 @@ function LibraryContent() {
                 key={article.id}
                 article={article}
                 onClick={() => setSelectedArticle(article)}
+                onShare={() => setShareArticle(article)}
               />
             ))}
           </div>
@@ -185,6 +206,7 @@ function LibraryContent() {
         />
       )}
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+      {shareArticle && <ShareModal article={shareArticle} onClose={() => setShareArticle(null)} />}
     </div>
   )
 }

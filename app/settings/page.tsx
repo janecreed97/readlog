@@ -10,6 +10,7 @@ export default function SettingsPage() {
   const [origin, setOrigin] = useState('')
   const [bookmarkletKey, setBookmarkletKey] = useState('')
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [profile, setProfile] = useState<{ display_name: string; username: string } | null>(null)
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -18,6 +19,10 @@ export default function SettingsPage() {
       // Fetch (or auto-create) the personal bookmarklet key
       fetch('/api/user/key').then((r) => r.json()).then((d) => {
         if (d.key) setBookmarkletKey(d.key)
+      })
+      // Fetch profile
+      fetch('/api/profile').then(r => r.json()).then(p => {
+        if (p?.id) setProfile(p)
       })
     })
   }, [router])
@@ -87,6 +92,8 @@ fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'
               <nav className="hidden sm:flex gap-4 text-sm">
                 <a href="/" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Library</a>
                 <a href="/outline" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Outline</a>
+                <a href="/friends" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Friends</a>
+                <a href="/inbox" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Inbox</a>
                 <a href="/settings" className="text-stone-900 dark:text-stone-100 font-medium">Settings</a>
               </nav>
             </div>
@@ -97,8 +104,9 @@ fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'
           <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
             <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Library</a>
             <a href="/outline" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Outline</a>
+            <a href="/friends" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Friends</a>
+            <a href="/inbox" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Inbox</a>
             <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-stone-100">Settings</a>
-            <button onClick={handleSignOut} className="px-4 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border-l border-gray-100 dark:border-stone-800">Sign out</button>
           </div>
         </div>
       </header>
@@ -108,6 +116,25 @@ fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'
           <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-1">Settings</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">Configure Alexandria for your workflow.</p>
         </div>
+
+        {/* Profile section */}
+        <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6">
+          <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100 mb-4">Profile</h2>
+          {profile ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-stone-900 dark:text-stone-100">{profile.display_name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">@{profile.username}</p>
+              </div>
+              <a href="/profile/setup" className="text-sm text-amber-700 dark:text-amber-400 hover:underline font-medium">Edit</a>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500 dark:text-gray-400">No profile set up yet.</p>
+              <a href="/profile/setup" className="text-sm text-amber-700 dark:text-amber-400 hover:underline font-medium">Set up profile →</a>
+            </div>
+          )}
+        </section>
 
         {/* Bookmarklet section */}
         <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6 space-y-5">
