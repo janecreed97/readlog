@@ -109,30 +109,6 @@ fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'
           <p className="text-sm text-gray-500 dark:text-gray-400">Configure Alexandria for your workflow.</p>
         </div>
 
-        {/* Appearance section */}
-        <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6">
-          <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100 mb-4">Appearance</h2>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Dark mode</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Switch between light and dark interface</p>
-            </div>
-            <button
-              onClick={toggleTheme}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                theme === 'dark' ? 'bg-stone-700' : 'bg-gray-200'
-              }`}
-              aria-label="Toggle dark mode"
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                  theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-        </section>
-
         {/* Bookmarklet section */}
         <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6 space-y-5">
           <div>
@@ -192,6 +168,29 @@ fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'
             <p className="text-xs text-gray-400 dark:text-gray-500">
               The bookmarklet only runs when you click it. It has no background access and cannot see other tabs. Sensitive sites (banking, email, health) are automatically blocked.
             </p>
+          </div>
+        </section>
+        {/* Appearance section */}
+        <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6">
+          <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100 mb-4">Appearance</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Dark mode</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Switch between light and dark interface</p>
+            </div>
+            <button
+              onClick={toggleTheme}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                theme === 'dark' ? 'bg-stone-700' : 'bg-gray-200'
+              }`}
+              aria-label="Toggle dark mode"
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
         </section>
       </main>
