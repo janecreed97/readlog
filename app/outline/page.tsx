@@ -68,7 +68,7 @@ function OutlineContent() {
                 <span className="sm:hidden">+</span>
                 <span className="hidden sm:inline">+ Add article</span>
               </button>
-              <button onClick={() => setShowHelp(true)} className="hidden sm:flex items-center justify-center w-6 h-6 rounded-full border border-gray-300 text-xs text-gray-400 hover:border-gray-500 hover:text-gray-600" aria-label="Help">
+              <button onClick={() => setShowHelp(true)} className="hidden sm:flex items-center justify-center w-6 h-6 rounded-md border border-gray-300 text-xs text-gray-400 hover:border-gray-500 hover:text-gray-600" aria-label="Help">
                 ?
               </button>
               <button onClick={handleSignOut} className="hidden sm:block text-sm text-gray-400 hover:text-gray-700">
