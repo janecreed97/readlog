@@ -125,13 +125,13 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b">
-          <h2 className="font-semibold text-stone-900">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b dark:border-stone-700">
+          <h2 className="font-semibold text-stone-900 dark:text-stone-100">
             {step === 'preview' ? 'Review & save' : 'Add article'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700">✕</button>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">✕</button>
         </div>
 
         <div className="px-4 sm:px-6 py-5">
@@ -139,7 +139,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
           {step === 'url' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Article URL</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Article URL</label>
                 <input
                   autoFocus
                   type="url"
@@ -147,19 +147,19 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
                   onChange={(e) => setUrl(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleFetch()}
                   placeholder="https://..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  className="w-full border border-gray-300 dark:border-stone-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 dark:bg-stone-800 dark:text-stone-100"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Direction <span className="font-normal text-gray-400">(optional)</span>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Direction <span className="font-normal text-gray-400">（optional）</span>
                 </label>
                 <textarea
                   value={direction}
                   onChange={(e) => setDirection(e.target.value)}
                   rows={2}
                   placeholder={'e.g. "Surface counterarguments" or "Facts and stats only, skip the analysis"'}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
+                  className="w-full border border-gray-300 dark:border-stone-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none dark:bg-stone-800 dark:text-stone-100"
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
@@ -177,11 +177,11 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
           {step === 'loading' && (
             <div className="py-12 text-center space-y-3">
               <div className="animate-spin w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full mx-auto" />
-              <p className="text-sm text-gray-500">Fetching and summarizing…</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Fetching and summarizing…</p>
               {/* Skeleton */}
               <div className="space-y-2 mt-6 text-left">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: `${70 + i * 5}%` }} />
+                  <div key={i} className="h-4 bg-gray-100 dark:bg-stone-700 rounded animate-pulse" style={{ width: `${70 + i * 5}%` }} />
                 ))}
               </div>
             </div>
@@ -192,13 +192,13 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
             <div className="space-y-4">
               {/* Extracted metadata */}
               {preview && (
-                <div className="bg-stone-50 border border-stone-200 rounded-lg px-4 py-3 space-y-1">
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Extracted from page</p>
+                <div className="bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 space-y-1">
+                  <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">Extracted from page</p>
                   {preview.title
-                    ? <p className="text-sm font-medium text-stone-900 leading-snug">{preview.title}</p>
+                    ? <p className="text-sm font-medium text-stone-900 dark:text-stone-100 leading-snug">{preview.title}</p>
                     : <p className="text-sm text-gray-400 italic">Title not found</p>
                   }
-                  <div className="flex gap-3 text-xs text-gray-500">
+                  <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
                     {preview.source && <span>{preview.source}</span>}
                     {preview.published_date && <span>{preview.published_date}</span>}
                   </div>
@@ -206,28 +206,28 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
               )}
 
               {/* Bookmarklet CTA — primary recommended path */}
-              <div className="bg-stone-50 border border-stone-200 rounded-lg px-4 py-3 space-y-2">
-                <p className="text-sm font-medium text-stone-900">Recommended: use the bookmarklet</p>
-                <p className="text-xs text-gray-500">
+              <div className="bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 space-y-2">
+                <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Recommended: use the bookmarklet</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   The Alexandria bookmarklet captures the full article text directly from your browser — including from sites you&apos;re already logged in to.
                 </p>
                 <a
                   href="/settings"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block text-xs font-medium text-amber-700 hover:underline"
+                  className="inline-block text-xs font-medium text-amber-700 dark:text-amber-400 hover:underline"
                 >
                   Set up the bookmarklet →
                 </a>
               </div>
 
               <div className="relative flex items-center">
-                <div className="flex-1 border-t border-gray-200" />
-                <span className="px-3 text-xs text-gray-400">or add manually</span>
-                <div className="flex-1 border-t border-gray-200" />
+                <div className="flex-1 border-t border-gray-200 dark:border-stone-700" />
+                <span className="px-3 text-xs text-gray-400 dark:text-gray-500">or add manually</span>
+                <div className="flex-1 border-t border-gray-200 dark:border-stone-700" />
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
                 Paste the article text or upload a screenshot below to generate a summary.
               </div>
 
@@ -235,24 +235,24 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
 
               {/* Paste text */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Paste article text</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Paste article text</label>
                 <textarea
                   value={pasteText}
                   onChange={(e) => setPasteText(e.target.value)}
                   rows={5}
                   placeholder="Paste the article body here…"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
+                  className="w-full border border-gray-300 dark:border-stone-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none dark:bg-stone-800 dark:text-stone-100"
                 />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Direction <span className="font-normal text-gray-400">(optional)</span>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Direction <span className="font-normal text-gray-400">（optional）</span>
                   </label>
                   <textarea
                     value={direction}
                     onChange={(e) => setDirection(e.target.value)}
                     rows={2}
                     placeholder={'e.g. "Surface counterarguments" or "Facts and stats only"'}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
+                    className="w-full border border-gray-300 dark:border-stone-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none dark:bg-stone-800 dark:text-stone-100"
                   />
                 </div>
                 <button
@@ -265,9 +265,9 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
               </div>
 
               <div className="relative flex items-center">
-                <div className="flex-1 border-t border-gray-200" />
-                <span className="px-3 text-xs text-gray-400">or</span>
-                <div className="flex-1 border-t border-gray-200" />
+                <div className="flex-1 border-t border-gray-200 dark:border-stone-700" />
+                <span className="px-3 text-xs text-gray-400 dark:text-gray-500">or</span>
+                <div className="flex-1 border-t border-gray-200 dark:border-stone-700" />
               </div>
 
               {/* Screenshot */}
@@ -284,22 +284,22 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
                 />
                 <button
                   onClick={() => fileRef.current?.click()}
-                  className="w-full border-2 border-dashed border-gray-300 rounded-lg py-3 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-700"
+                  className="w-full border-2 border-dashed border-gray-300 dark:border-stone-600 rounded-lg py-3 text-sm text-gray-500 dark:text-gray-400 hover:border-gray-400 dark:hover:border-stone-500 hover:text-gray-700 dark:hover:text-gray-300"
                 >
                   Upload screenshot
                 </button>
               </div>
 
               <div className="relative flex items-center">
-                <div className="flex-1 border-t border-gray-200" />
-                <span className="px-3 text-xs text-gray-400">or</span>
-                <div className="flex-1 border-t border-gray-200" />
+                <div className="flex-1 border-t border-gray-200 dark:border-stone-700" />
+                <span className="px-3 text-xs text-gray-400 dark:text-gray-500">or</span>
+                <div className="flex-1 border-t border-gray-200 dark:border-stone-700" />
               </div>
 
               {/* Save without summary */}
               <button
                 onClick={() => setStep('preview')}
-                className="w-full text-sm text-gray-500 hover:text-stone-900 py-2 rounded-lg border border-gray-200 hover:border-gray-400 transition-colors"
+                className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-stone-900 dark:hover:text-stone-100 py-2 rounded-lg border border-gray-200 dark:border-stone-700 hover:border-gray-400 dark:hover:border-stone-500 transition-colors"
               >
                 Save without summary →
               </button>
@@ -310,7 +310,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
           {step === 'preview' && preview && (
             <div className="space-y-4">
               {preview.is_paywalled && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
                   Paywalled article — content extracted manually
                 </div>
               )}
@@ -320,38 +320,38 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
                 { label: 'Published date', key: 'published_date' as const, type: 'date' },
               ].map(({ label, key, type }) => (
                 <div key={key}>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{label}</label>
                   <input
                     type={type}
                     value={(preview[key] as string) ?? ''}
                     onChange={(e) => updatePreview(key, e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                    className="w-full text-sm border border-gray-200 dark:border-stone-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 dark:bg-stone-800 dark:text-stone-100"
                   />
                 </div>
               ))}
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Category</label>
                 <input
                   type="text"
                   value={preview.category ?? ''}
                   onChange={(e) => updatePreview('category', e.target.value)}
                   list="add-categories-list"
                   placeholder="e.g. Technology"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  className="w-full text-sm border border-gray-200 dark:border-stone-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 dark:bg-stone-800 dark:text-stone-100"
                 />
                 <datalist id="add-categories-list">
                   {existingCategories.map((c) => <option key={c} value={c} />)}
                 </datalist>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Subcategory</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Subcategory</label>
                 <input
                   type="text"
                   value={preview.subcategory ?? ''}
                   onChange={(e) => updatePreview('subcategory', e.target.value)}
                   list="add-subcategories-list"
                   placeholder="e.g. AI"
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  className="w-full text-sm border border-gray-200 dark:border-stone-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 dark:bg-stone-800 dark:text-stone-100"
                 />
                 <datalist id="add-subcategories-list">
                   {(preview.category && existingSubcategories[preview.category]
@@ -362,16 +362,16 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2">Key takeaways</label>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Key takeaways</label>
                 <BulletList
                   bullets={preview.bullets}
                   onChange={(b) => updatePreview('bullets', b)}
                 />
               </div>
 
-              <div className="pt-3 border-t border-gray-100 space-y-2">
-                <label className="block text-xs font-medium text-gray-500">
-                  Direction <span className="font-normal text-gray-400">(optional — reshapes the bullets)</span>
+              <div className="pt-3 border-t border-gray-100 dark:border-stone-700 space-y-2">
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400">
+                  Direction <span className="font-normal text-gray-400">（optional — reshapes the bullets）</span>
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -379,11 +379,11 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
                     value={direction}
                     onChange={(e) => setDirection(e.target.value)}
                     placeholder={'e.g. "Counterarguments" or "Stats only"'}
-                    className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                    className="flex-1 text-sm border border-gray-200 dark:border-stone-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400 dark:bg-stone-800 dark:text-stone-100"
                   />
                   <button
                     onClick={handleResummarize}
-                    className="shrink-0 text-sm bg-stone-100 text-stone-700 font-medium px-3 py-2 rounded-lg hover:bg-stone-200"
+                    className="shrink-0 text-sm bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200 font-medium px-3 py-2 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-600"
                   >
                     Re-summarize
                   </button>
@@ -397,10 +397,10 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
 
         {/* Footer */}
         {step === 'preview' && preview && (
-          <div className="px-4 sm:px-6 py-4 border-t flex gap-3">
+          <div className="px-4 sm:px-6 py-4 border-t dark:border-stone-700 flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 border border-gray-300 text-gray-700 font-medium py-2 rounded-lg hover:bg-stone-50 text-sm"
+              className="flex-1 border border-gray-300 dark:border-stone-600 text-gray-700 dark:text-gray-300 font-medium py-2 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 text-sm"
             >
               Cancel
             </button>

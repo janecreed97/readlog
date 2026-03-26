@@ -56,24 +56,24 @@ export default function HelpModal({ onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-y-auto flex flex-col"
+        className="w-full max-w-2xl max-h-[90vh] bg-white dark:bg-stone-900 rounded-2xl shadow-2xl overflow-y-auto flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="font-semibold text-stone-900">How to use Alexandria</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700">✕</button>
+        <div className="flex items-center justify-between px-6 py-4 border-b dark:border-stone-700">
+          <h2 className="font-semibold text-stone-900 dark:text-stone-100">How to use Alexandria</h2>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">✕</button>
         </div>
 
         {/* Content */}
         <div className="px-6 py-5 space-y-6">
           {sections.map((section) => (
             <div key={section.title}>
-              <h3 className="text-sm font-semibold text-stone-900 mb-2">{section.title}</h3>
+              <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-2">{section.title}</h3>
               <ul className="space-y-1.5">
                 {section.items.map((item, i) => (
-                  <li key={i} className="flex gap-2.5 text-sm text-gray-600">
-                    <span className="text-gray-300 shrink-0 mt-0.5">•</span>
+                  <li key={i} className="flex gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+                    <span className="text-gray-300 dark:text-gray-500 shrink-0 mt-0.5">•</span>
                     <span>{item}</span>
                   </li>
                 ))}

@@ -53,7 +53,7 @@ export default function BulletList({ bullets, onChange, maxBullets = 5 }: Props)
                       {/* Drag handle */}
                       <span
                         {...provided.dragHandleProps}
-                        className="mt-2 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing select-none"
+                        className="mt-2 text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 cursor-grab active:cursor-grabbing select-none"
                         title="Drag to reorder"
                       >
                         ⠿
@@ -65,12 +65,12 @@ export default function BulletList({ bullets, onChange, maxBullets = 5 }: Props)
                           value={bullet}
                           onChange={(e) => updateBullet(index, e.target.value)}
                           onBlur={() => setEditingIndex(null)}
-                          className="flex-1 text-sm border border-stone-400 rounded px-2 py-1 resize-none outline-none focus:ring-1 focus:ring-stone-400 min-h-[2.5rem]"
+                          className="flex-1 text-sm border border-stone-400 dark:border-stone-600 rounded px-2 py-1 resize-none outline-none focus:ring-1 focus:ring-stone-400 min-h-[2.5rem] dark:bg-stone-800 dark:text-stone-100"
                           rows={2}
                         />
                       ) : (
                         <span
-                          className="flex-1 text-sm text-gray-700 py-1 cursor-text"
+                          className="flex-1 text-sm text-gray-700 dark:text-gray-300 py-1 cursor-text"
                           onClick={() => setEditingIndex(index)}
                         >
                           {bullet || <span className="text-gray-400 italic">Empty bullet — click to edit</span>}

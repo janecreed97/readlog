@@ -64,19 +64,19 @@ function LibraryContent() {
   })
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
+      <header className="bg-white dark:bg-stone-900 border-b border-gray-200 dark:border-stone-700 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="h-12 sm:h-14 flex items-center justify-between gap-2">
             <div className="flex items-center gap-3 sm:gap-6">
               <div className="flex items-center gap-2">
                 <Logo size={22} />
-                <span className="font-bold text-stone-900">ALEXANDRIA</span>
+                <span className="font-bold text-stone-900 dark:text-stone-100">ALEXANDRIA</span>
               </div>
               <nav className="hidden sm:flex gap-4 text-sm">
-                <a href="/" className="text-stone-900 font-medium">Library</a>
-                <a href="/outline" className="text-gray-500 hover:text-gray-800">Outline</a>
-                <a href="/settings" className="text-gray-500 hover:text-gray-800">Settings</a>
+                <a href="/" className="text-stone-900 dark:text-stone-100 font-medium">Library</a>
+                <a href="/outline" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Outline</a>
+                <a href="/settings" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Settings</a>
               </nav>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
@@ -87,19 +87,19 @@ function LibraryContent() {
                 <span className="sm:hidden">+</span>
                 <span className="hidden sm:inline">+ Add article</span>
               </button>
-              <button onClick={() => setShowHelp(true)} className="hidden sm:flex items-center justify-center w-6 h-6 rounded-md border border-gray-300 text-xs text-gray-400 hover:border-gray-500 hover:text-gray-600" aria-label="Help">
+              <button onClick={() => setShowHelp(true)} className="hidden sm:flex items-center justify-center w-6 h-6 rounded-md border border-gray-300 dark:border-stone-600 text-xs text-gray-400 dark:text-gray-500 hover:border-gray-500 dark:hover:border-stone-400 hover:text-gray-600 dark:hover:text-gray-300" aria-label="Help">
                 ?
               </button>
-              <button onClick={handleSignOut} className="hidden sm:block text-sm text-gray-400 hover:text-gray-700">
+              <button onClick={handleSignOut} className="hidden sm:block text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                 Sign out
               </button>
             </div>
           </div>
-          <div className="sm:hidden flex border-t border-gray-100">
-            <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 border-b-2 border-stone-900">Library</a>
-            <a href="/outline" className="flex-1 text-center text-xs font-medium py-2 text-gray-400">Outline</a>
-            <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-gray-400">Settings</a>
-            <button onClick={handleSignOut} className="px-4 text-xs text-gray-400 hover:text-gray-600 border-l border-gray-100">Sign out</button>
+          <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
+            <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-stone-100">Library</a>
+            <a href="/outline" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Outline</a>
+            <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Settings</a>
+            <button onClick={handleSignOut} className="px-4 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border-l border-gray-100 dark:border-stone-800">Sign out</button>
           </div>
         </div>
       </header>
@@ -114,11 +114,11 @@ function LibraryContent() {
             placeholder="Search titles and bullets…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-stone-400"
+            className="border border-gray-200 dark:border-stone-700 rounded-lg px-3 py-1.5 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-stone-400 dark:bg-stone-800 dark:text-stone-100 dark:placeholder-stone-500"
           />
         </div>
 
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-400 dark:text-gray-500">
           {filtered.length} {filtered.length === 1 ? 'article' : 'articles'}
           {(activeCategory || activeSub || search) ? ' matching filters' : ' saved'}
         </p>
@@ -126,18 +126,18 @@ function LibraryContent() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3 animate-pulse">
-                <div className="h-3 bg-gray-100 rounded w-1/3" />
-                <div className="h-4 bg-gray-100 rounded w-4/5" />
-                <div className="h-4 bg-gray-100 rounded w-2/3" />
-                <div className="h-3 bg-gray-100 rounded w-1/2" />
+              <div key={i} className="bg-white dark:bg-stone-900 rounded-xl border border-gray-200 dark:border-stone-700 p-4 space-y-3 animate-pulse">
+                <div className="h-3 bg-gray-100 dark:bg-stone-700 rounded w-1/3" />
+                <div className="h-4 bg-gray-100 dark:bg-stone-700 rounded w-4/5" />
+                <div className="h-4 bg-gray-100 dark:bg-stone-700 rounded w-2/3" />
+                <div className="h-3 bg-gray-100 dark:bg-stone-700 rounded w-1/2" />
               </div>
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-24 text-center space-y-3">
             <p className="text-4xl">📰</p>
-            <p className="text-gray-500 font-medium">
+            <p className="text-gray-500 dark:text-gray-400 font-medium">
               {articles.length === 0 ? 'No articles yet.' : 'No articles match your filters.'}
             </p>
             {articles.length === 0 && (

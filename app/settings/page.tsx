@@ -9,6 +9,7 @@ export default function SettingsPage() {
   const router = useRouter()
   const [origin, setOrigin] = useState('')
   const [bookmarkletKey, setBookmarkletKey] = useState('')
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -20,6 +21,21 @@ export default function SettingsPage() {
       })
     })
   }, [router])
+
+  useEffect(() => {
+    const stored = localStorage.getItem('theme')
+    if (stored === 'dark') setTheme('dark')
+    else if (stored === 'light') setTheme('light')
+    else if (window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark')
+  }, [])
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    localStorage.setItem('theme', next)
+    if (next === 'dark') document.documentElement.classList.add('dark')
+    else document.documentElement.classList.remove('dark')
+  }
 
   async function handleSignOut() {
     await createClient().auth.signOut()
@@ -49,7 +65,7 @@ if(BLOCKED.some(function(d){return host===d||host.endsWith('.'+d);})){
 var title=document.title||window.location.href;
 var u=window.location.href;
 var wordCount=document.body.innerText.trim().split(/\s+/).length;
-if(!confirm('Save this article to Alexandria?\n\n\u201c'+title+'\u201d')){return;}
+if(!confirm('Save to Alexandria?')){return;}
 var t=document.body.innerText;
 fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'application/json','X-Bookmarklet-Key':'${bookmarkletKey}'},body:JSON.stringify({url:u,text:t})}).then(function(r){return r.json()}).then(function(d){if(d.error){alert('Alexandria: '+d.error);return;}var w=window.open('${origin}/add?token='+d.token,'alexandria','width=520,height=700,resizable=yes');if(!w){alert('Alexandria: popup was blocked. Please allow popups for this site in your browser settings, then try again.');}}).catch(function(){alert('Alexandria: could not connect.');});
 })();`.replace(/\n/g,'')
@@ -58,46 +74,70 @@ fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'
   const ready = origin && bookmarkletKey
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+      <header className="bg-white dark:bg-stone-900 border-b border-gray-200 dark:border-stone-700 sticky top-0 z-40">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="h-12 sm:h-14 flex items-center justify-between gap-2">
             <div className="flex items-center gap-3 sm:gap-6">
               <div className="flex items-center gap-2">
                 <Logo size={22} />
-                <span className="font-bold text-stone-900">ALEXANDRIA</span>
+                <span className="font-bold text-stone-900 dark:text-stone-100">ALEXANDRIA</span>
               </div>
               <nav className="hidden sm:flex gap-4 text-sm">
-                <a href="/" className="text-gray-500 hover:text-gray-800">Library</a>
-                <a href="/outline" className="text-gray-500 hover:text-gray-800">Outline</a>
-                <a href="/settings" className="text-stone-900 font-medium">Settings</a>
+                <a href="/" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Library</a>
+                <a href="/outline" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Outline</a>
+                <a href="/settings" className="text-stone-900 dark:text-stone-100 font-medium">Settings</a>
               </nav>
             </div>
-            <button onClick={handleSignOut} className="hidden sm:block text-sm text-gray-400 hover:text-gray-700">
+            <button onClick={handleSignOut} className="hidden sm:block text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
               Sign out
             </button>
           </div>
-          <div className="sm:hidden flex border-t border-gray-100">
-            <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-gray-400">Library</a>
-            <a href="/outline" className="flex-1 text-center text-xs font-medium py-2 text-gray-400">Outline</a>
-            <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 border-b-2 border-stone-900">Settings</a>
-            <button onClick={handleSignOut} className="px-4 text-xs text-gray-400 hover:text-gray-600 border-l border-gray-100">Sign out</button>
+          <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
+            <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Library</a>
+            <a href="/outline" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Outline</a>
+            <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-stone-100">Settings</a>
+            <button onClick={handleSignOut} className="px-4 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border-l border-gray-100 dark:border-stone-800">Sign out</button>
           </div>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-10">
         <div>
-          <h1 className="text-xl font-bold text-stone-900 mb-1">Settings</h1>
-          <p className="text-sm text-gray-500">Configure Alexandria for your workflow.</p>
+          <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-1">Settings</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Configure Alexandria for your workflow.</p>
         </div>
 
+        {/* Appearance section */}
+        <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6">
+          <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100 mb-4">Appearance</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Dark mode</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Switch between light and dark interface</p>
+            </div>
+            <button
+              onClick={toggleTheme}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                theme === 'dark' ? 'bg-stone-700' : 'bg-gray-200'
+              }`}
+              aria-label="Toggle dark mode"
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </section>
+
         {/* Bookmarklet section */}
-        <section className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
+        <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6 space-y-5">
           <div>
-            <h2 className="text-base font-semibold text-stone-900 mb-1">Save from Browser</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100 mb-1">Save from Browser</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               The Alexandria bookmarklet lets you save articles directly from your browser — even from sites you subscribe to, like the FT or WSJ. It reads the full article text from your already-authenticated browser session.
             </p>
           </div>
@@ -123,33 +163,33 @@ fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'
                   Save to Alexandria
                 </a>
               )}
-              <div className="text-sm text-gray-500 pt-1">
-                <p className="font-medium text-stone-900 mb-1">Drag this button to your bookmarks bar.</p>
-                <p>Then click it on any article you want to save — including paywalled ones you're already logged in to.</p>
+              <div className="text-sm text-gray-500 dark:text-gray-400 pt-1">
+                <p className="font-medium text-stone-900 dark:text-stone-100 mb-1">Drag this button to your bookmarks bar.</p>
+                <p>Then click it on any article you want to save — including paywalled ones you&apos;re already logged in to.</p>
               </div>
             </div>
 
-            <div className="bg-stone-50 rounded-lg border border-stone-200 px-4 py-3 space-y-1.5 text-sm text-gray-600">
-              <p className="font-medium text-stone-900 text-xs uppercase tracking-wide">How it works</p>
+            <div className="bg-stone-50 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-700 px-4 py-3 space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
+              <p className="font-medium text-stone-900 dark:text-stone-100 text-xs uppercase tracking-wide">How it works</p>
               <ol className="space-y-1 list-decimal list-inside text-xs">
                 <li>Open any article in your browser — including paywalled ones you subscribe to</li>
-                <li>Click <span className="font-medium text-stone-900">Save to Alexandria</span> in your bookmarks bar</li>
+                <li>Click <span className="font-medium text-stone-900 dark:text-stone-100">Save to Alexandria</span> in your bookmarks bar</li>
                 <li>A small Alexandria window opens with the article already summarised</li>
                 <li>Review, edit if needed, and click Save — then return to reading</li>
               </ol>
             </div>
 
             {/* Popup permission notice */}
-            <div className="flex gap-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+            <div className="flex gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-3">
               <span className="text-amber-500 text-base shrink-0">⚠️</span>
-              <div className="text-xs text-amber-800 space-y-0.5">
+              <div className="text-xs text-amber-800 dark:text-amber-300 space-y-0.5">
                 <p className="font-semibold">Allow popups for Alexandria</p>
                 <p>The bookmarklet opens a small save window. Your browser may block it by default. When prompted, choose <span className="font-medium">"Always allow popups from [your Alexandria URL]"</span>.</p>
-                <p className="text-amber-600">If nothing appears after clicking the bookmarklet, check for a blocked popup icon in your browser's address bar.</p>
+                <p className="text-amber-600 dark:text-amber-400">If nothing appears after clicking the bookmarklet, check for a blocked popup icon in your browser&apos;s address bar.</p>
               </div>
             </div>
 
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
               The bookmarklet only runs when you click it. It has no background access and cannot see other tabs. Sensitive sites (banking, email, health) are automatically blocked.
             </p>
           </div>

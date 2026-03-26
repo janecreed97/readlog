@@ -24,7 +24,7 @@ export default function ArticleCard({ article, onClick }: Props) {
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
-      className="cursor-pointer text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-400 hover:shadow-sm transition-all space-y-3 w-full"
+      className="cursor-pointer text-left bg-white dark:bg-stone-900 rounded-xl border border-gray-200 dark:border-stone-700 p-4 hover:border-gray-400 dark:hover:border-stone-500 hover:shadow-sm transition-all space-y-3 w-full"
     >
       {/* Header */}
       <div className="flex items-center gap-2">
@@ -34,9 +34,9 @@ export default function ArticleCard({ article, onClick }: Props) {
           className="w-4 h-4 rounded"
           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
         />
-        <span className="text-xs text-gray-500 font-medium">{article.source}</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{article.source}</span>
         {article.is_paywalled && (
-          <span className="ml-auto text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+          <span className="ml-auto text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full">
             Paywalled
           </span>
         )}
@@ -48,13 +48,13 @@ export default function ArticleCard({ article, onClick }: Props) {
         target="_blank"
         rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
-        className="block font-semibold text-stone-900 text-sm leading-snug line-clamp-2 hover:underline hover:text-amber-800"
+        className="block font-semibold text-stone-900 dark:text-stone-100 text-sm leading-snug line-clamp-2 hover:underline hover:text-amber-800 dark:hover:text-amber-400"
       >
         {article.title}
       </a>
 
       {/* Dates */}
-      <div className="flex gap-3 text-xs text-gray-400">
+      <div className="flex gap-3 text-xs text-gray-400 dark:text-gray-500">
         {article.published_date && <span>{formatDate(article.published_date)}</span>}
         <span>Saved {formatDate(article.created_at)}</span>
       </div>
@@ -62,12 +62,12 @@ export default function ArticleCard({ article, onClick }: Props) {
       {/* Badges */}
       <div className="flex flex-wrap gap-1.5">
         {article.category && (
-          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
+          <span className="text-xs bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full">
             {article.category}
           </span>
         )}
         {article.subcategory && (
-          <span className="text-xs bg-amber-50 text-amber-800 px-2 py-0.5 rounded-full">
+          <span className="text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400 px-2 py-0.5 rounded-full">
             {article.subcategory}
           </span>
         )}
@@ -75,7 +75,7 @@ export default function ArticleCard({ article, onClick }: Props) {
 
       {/* Teaser bullet */}
       {firstBullet && (
-        <p className="text-xs text-gray-500 italic line-clamp-1">{firstBullet}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 italic line-clamp-1">{firstBullet}</p>
       )}
     </div>
   )

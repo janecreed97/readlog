@@ -19,20 +19,20 @@ function formatDate(dateStr: string) {
 
 function Badge({ label, color }: { label: string; color: 'gray' | 'blue' }) {
   const cls = color === 'blue'
-    ? 'bg-amber-50 text-amber-800'
-    : 'bg-gray-100 text-gray-600'
+    ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400'
+    : 'bg-gray-100 dark:bg-stone-700 text-gray-600 dark:text-gray-300'
   return <span className={`text-xs px-2 py-0.5 rounded-full ${cls}`}>{label}</span>
 }
 
 function ArticleEntry({ article }: { article: Article }) {
   return (
-    <div className="py-3 border-l-2 border-gray-200 pl-4 space-y-1.5">
+    <div className="py-3 border-l-2 border-gray-200 dark:border-stone-700 pl-4 space-y-1.5">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2">
         <a
           href={article.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-stone-900 hover:text-amber-800 hover:underline text-sm"
+          className="font-medium text-stone-900 dark:text-stone-100 hover:text-amber-800 dark:hover:text-amber-400 hover:underline text-sm"
         >
           {article.title}
         </a>
@@ -41,12 +41,12 @@ function ArticleEntry({ article }: { article: Article }) {
           {article.subcategory && <Badge label={article.subcategory} color="blue" />}
         </div>
       </div>
-      <p className="text-xs text-gray-400">{article.source}{article.published_date ? ` · ${formatDate(article.published_date)}` : ''}</p>
+      <p className="text-xs text-gray-400 dark:text-gray-500">{article.source}{article.published_date ? ` · ${formatDate(article.published_date)}` : ''}</p>
       {article.bullets && article.bullets.length > 0 && (
         <ul className="space-y-0.5 mt-1">
           {article.bullets.map((b) => (
-            <li key={b.id} className="text-sm text-gray-600 flex gap-2">
-              <span className="text-gray-400 shrink-0">–</span>
+            <li key={b.id} className="text-sm text-gray-600 dark:text-gray-300 flex gap-2">
+              <span className="text-gray-400 dark:text-gray-500 shrink-0">–</span>
               <span>{b.content}</span>
             </li>
           ))}
@@ -63,15 +63,15 @@ function CollapsibleSection({ title, children, defaultOpen = true }: {
 }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
+    <div className="border border-gray-200 dark:border-stone-700 rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-3 bg-stone-50 hover:bg-gray-100 transition-colors text-left"
+        className="w-full flex items-center justify-between px-5 py-3 bg-stone-50 dark:bg-stone-800 hover:bg-gray-100 dark:hover:bg-stone-700 transition-colors text-left"
       >
-        <span className="font-semibold text-gray-800 text-sm">{title}</span>
-        <span className="text-gray-400 text-xs">{open ? '▲' : '▼'}</span>
+        <span className="font-semibold text-gray-800 dark:text-stone-100 text-sm">{title}</span>
+        <span className="text-gray-400 dark:text-gray-500 text-xs">{open ? '▲' : '▼'}</span>
       </button>
-      {open && <div className="px-5 py-3 space-y-4">{children}</div>}
+      {open && <div className="px-5 py-3 space-y-4 dark:bg-stone-900">{children}</div>}
     </div>
   )
 }
@@ -136,7 +136,7 @@ function TopicView({ articles, activeCategory }: { articles: Article[]; activeCa
           >
             {/* AI synthesis */}
             {syntheses[cat] ? (
-              <p className="text-sm text-gray-600 italic bg-blue-50 rounded-lg px-4 py-3">{syntheses[cat]}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 italic bg-blue-50 dark:bg-stone-800 rounded-lg px-4 py-3">{syntheses[cat]}</p>
             ) : (
               <button
                 onClick={() => synthesize(cat)}
@@ -151,7 +151,7 @@ function TopicView({ articles, activeCategory }: { articles: Article[]; activeCa
             {Object.entries(subs).map(([sub, subArticles]) => (
               <div key={sub}>
                 {Object.keys(subs).length > 1 && (
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">{sub}</p>
+                  <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">{sub}</p>
                 )}
                 <div className="space-y-3">
                   {subArticles.map((a) => <ArticleEntry key={a.id} article={a} />)}
@@ -177,13 +177,13 @@ export default function OutlineView({ articles, activeCategory, activeSub }: Pro
   return (
     <div className="space-y-6">
       {/* Mode toggle */}
-      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+      <div className="flex items-center gap-1 bg-gray-100 dark:bg-stone-800 rounded-lg p-1 w-fit">
         {(['chronological', 'topic'] as const).map((m) => (
           <button
             key={m}
             onClick={() => setMode(m)}
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
-              mode === m ? 'bg-white shadow text-stone-900' : 'text-gray-500 hover:text-gray-700'
+              mode === m ? 'bg-white dark:bg-stone-700 shadow text-stone-900 dark:text-stone-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
             }`}
           >
             {m === 'chronological' ? 'Chronological' : 'By Topic'}
