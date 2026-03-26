@@ -110,6 +110,7 @@ function OutlineContent() {
           onClose={() => setShowAdd(false)}
           onSaved={() => { setShowAdd(false); fetchArticles() }}
           existingCategories={categories}
+          existingSubcategories={subcategories}
         />
       )}
     </div>
