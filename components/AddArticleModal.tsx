@@ -190,21 +190,37 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
           {/* Paywall fallback */}
           {step === 'paywall' && (
             <div className="space-y-4">
-              <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
-                This article appears to be paywalled. Paste the text or upload a screenshot to continue.
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Paste article text</label>
-                  <textarea
-                    value={pasteText}
-                    onChange={(e) => setPasteText(e.target.value)}
-                    rows={6}
-                    placeholder="Paste the article body here…"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
-                  />
+              {/* Extracted metadata */}
+              {preview && (
+                <div className="bg-stone-50 border border-stone-200 rounded-lg px-4 py-3 space-y-1">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Extracted from page</p>
+                  {preview.title
+                    ? <p className="text-sm font-medium text-stone-900 leading-snug">{preview.title}</p>
+                    : <p className="text-sm text-gray-400 italic">Title not found</p>
+                  }
+                  <div className="flex gap-3 text-xs text-gray-500">
+                    {preview.source && <span>{preview.source}</span>}
+                    {preview.published_date && <span>{preview.published_date}</span>}
+                  </div>
                 </div>
+              )}
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
+                This article is paywalled — the full text is needed to generate a summary.
+              </div>
+
+              {error && <p className="text-sm text-red-500">{error}</p>}
+
+              {/* Paste text */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Paste article text</label>
+                <textarea
+                  value={pasteText}
+                  onChange={(e) => setPasteText(e.target.value)}
+                  rows={5}
+                  placeholder="Paste the article body here…"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
+                />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Direction <span className="font-normal text-gray-400">(optional)</span>
@@ -213,7 +229,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
                     value={direction}
                     onChange={(e) => setDirection(e.target.value)}
                     rows={2}
-                    placeholder={'e.g. "Surface counterarguments" or "Facts and stats only, skip the analysis"'}
+                    placeholder={'e.g. "Surface counterarguments" or "Facts and stats only"'}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
                   />
                 </div>
@@ -225,11 +241,14 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
                   Summarize pasted text
                 </button>
               </div>
+
               <div className="relative flex items-center">
                 <div className="flex-1 border-t border-gray-200" />
                 <span className="px-3 text-xs text-gray-400">or</span>
                 <div className="flex-1 border-t border-gray-200" />
               </div>
+
+              {/* Screenshot */}
               <div>
                 <input
                   ref={fileRef}
@@ -248,6 +267,20 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
                   Upload screenshot
                 </button>
               </div>
+
+              <div className="relative flex items-center">
+                <div className="flex-1 border-t border-gray-200" />
+                <span className="px-3 text-xs text-gray-400">or</span>
+                <div className="flex-1 border-t border-gray-200" />
+              </div>
+
+              {/* Save without summary */}
+              <button
+                onClick={() => setStep('preview')}
+                className="w-full text-sm text-gray-500 hover:text-stone-900 py-2 rounded-lg border border-gray-200 hover:border-gray-400 transition-colors"
+              >
+                Save without summary →
+              </button>
             </div>
           )}
 

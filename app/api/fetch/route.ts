@@ -65,6 +65,35 @@ ${text.slice(0, 8000)}`
   return JSON.parse(cleaned)
 }
 
+function extractMetaFromHtml(html: string, url: string): { title: string; source: string; published_date: string | null } {
+  const { document } = parseHTML(html)
+
+  function getMeta(...names: string[]): string {
+    for (const name of names) {
+      const val = (
+        document.querySelector(`meta[property="${name}"]`) ??
+        document.querySelector(`meta[name="${name}"]`)
+      )?.getAttribute('content')?.trim()
+      if (val) return val
+    }
+    return ''
+  }
+
+  const title =
+    getMeta('og:title', 'twitter:title') ||
+    document.querySelector('title')?.textContent?.trim() ||
+    ''
+
+  const source =
+    getMeta('og:site_name') ||
+    new URL(url).hostname.replace('www.', '')
+
+  const rawDate = getMeta('article:published_time', 'datePublished', 'date', 'pubdate', 'DC.date')
+  const published_date = rawDate ? rawDate.slice(0, 10) : null
+
+  return { title, source, published_date }
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -104,10 +133,9 @@ export async function POST(request: Request) {
   }
 
   if (!articleText || isPaywalled) {
+    const meta = extractMetaFromHtml(articleHtml, url)
     return NextResponse.json({
-      title: '',
-      source: new URL(url).hostname.replace('www.', ''),
-      published_date: null,
+      ...meta,
       category: '',
       subcategory: '',
       bullets: [],
