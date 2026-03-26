@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@/lib/supabase/server'
 import type { ArticlePreview } from '@/lib/types'
 
-const anthropic = new Anthropic()
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!)
+const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -18,22 +19,9 @@ export async function POST(request: Request) {
 
   const bytes = await image.arrayBuffer()
   const base64 = Buffer.from(bytes).toString('base64')
-  const mediaType = (image.type || 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+  const mimeType = (image.type || 'image/jpeg') as string
 
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'image',
-            source: { type: 'base64', media_type: mediaType, data: base64 },
-          },
-          {
-            type: 'text',
-            text: `This is a screenshot of an article. Extract the article text and return a JSON object with:
+  const prompt = `This is a screenshot of an article. Extract the article text and return a JSON object with:
 - title (string)
 - source (string): publication name
 - published_date (string | null): YYYY-MM-DD or null
@@ -41,26 +29,20 @@ export async function POST(request: Request) {
 - subcategory (string): more specific sub-topic
 - bullets (array of 2-5 strings): key takeaways
 
-Return only valid JSON, no markdown.${url ? `\nArticle URL: ${url}` : ''}`,
-          },
-        ],
-      },
-    ],
-  })
-
-  const content = message.content[0]
-  if (content.type !== 'text') {
-    return NextResponse.json({ error: 'Unexpected response' }, { status: 500 })
-  }
+Return only valid JSON, no markdown.${url ? `\nArticle URL: ${url}` : ''}`
 
   try {
-    const summary = JSON.parse(content.text)
-    return NextResponse.json({
-      ...summary,
-      is_paywalled: true,
-      url,
-    } satisfies ArticlePreview)
-  } catch {
-    return NextResponse.json({ error: 'Failed to parse response' }, { status: 500 })
+    const result = await model.generateContent([
+      { inlineData: { data: base64, mimeType } },
+      prompt,
+    ])
+    const responseText = result.response.text().trim()
+    const cleaned = responseText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
+    const summary = JSON.parse(cleaned)
+    return NextResponse.json({ ...summary, is_paywalled: true, url } satisfies ArticlePreview)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('Gemini screenshot error:', message)
+    return NextResponse.json({ error: `Failed to process screenshot: ${message}` }, { status: 500 })
   }
 }
