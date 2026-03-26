@@ -205,8 +205,30 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories, 
                 </div>
               )}
 
+              {/* Bookmarklet CTA — primary recommended path */}
+              <div className="bg-stone-50 border border-stone-200 rounded-lg px-4 py-3 space-y-2">
+                <p className="text-sm font-medium text-stone-900">Recommended: use the bookmarklet</p>
+                <p className="text-xs text-gray-500">
+                  The Alexandria bookmarklet captures the full article text directly from your browser — including from sites you&apos;re already logged in to.
+                </p>
+                <a
+                  href="/settings"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-xs font-medium text-amber-700 hover:underline"
+                >
+                  Set up the bookmarklet →
+                </a>
+              </div>
+
+              <div className="relative flex items-center">
+                <div className="flex-1 border-t border-gray-200" />
+                <span className="px-3 text-xs text-gray-400">or add manually</span>
+                <div className="flex-1 border-t border-gray-200" />
+              </div>
+
               <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800">
-                This article is paywalled — the full text is needed to generate a summary.
+                Paste the article text or upload a screenshot below to generate a summary.
               </div>
 
               {error && <p className="text-sm text-red-500">{error}</p>}

@@ -58,6 +58,7 @@ function OutlineContent() {
               <nav className="hidden sm:flex gap-4 text-sm">
                 <a href="/" className="text-gray-500 hover:text-gray-800">Library</a>
                 <a href="/outline" className="text-stone-900 font-medium">Outline</a>
+                <a href="/settings" className="text-gray-500 hover:text-gray-800">Settings</a>
               </nav>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
@@ -79,6 +80,7 @@ function OutlineContent() {
           <div className="sm:hidden flex border-t border-gray-100">
             <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-gray-400">Library</a>
             <a href="/outline" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 border-b-2 border-stone-900">Outline</a>
+            <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-gray-400">Settings</a>
             <button onClick={handleSignOut} className="px-4 text-xs text-gray-400 hover:text-gray-600 border-l border-gray-100">Sign out</button>
           </div>
         </div>
