@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@/lib/supabase/server'
 import type { ArticlePreview } from '@/lib/types'
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!)
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+const GEMINI_API_KEY = process.env.GOOGLE_GENERATIVE_AI_API_KEY!
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -19,7 +18,7 @@ export async function POST(request: Request) {
 
   const bytes = await image.arrayBuffer()
   const base64 = Buffer.from(bytes).toString('base64')
-  const mimeType = (image.type || 'image/jpeg') as string
+  const mimeType = image.type || 'image/jpeg'
 
   const prompt = `This is a screenshot of an article. Extract the article text and return a JSON object with:
 - title (string)
@@ -32,11 +31,21 @@ export async function POST(request: Request) {
 Return only valid JSON, no markdown.${url ? `\nArticle URL: ${url}` : ''}`
 
   try {
-    const result = await model.generateContent([
-      { inlineData: { data: base64, mimeType } },
-      prompt,
-    ])
-    const responseText = result.response.text().trim()
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { inline_data: { mime_type: mimeType, data: base64 } },
+            { text: prompt },
+          ],
+        }],
+      }),
+    })
+    if (!res.ok) throw new Error(`Gemini API error ${res.status}: ${await res.text()}`)
+    const data = await res.json()
+    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
     const cleaned = responseText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
     const summary = JSON.parse(cleaned)
     return NextResponse.json({ ...summary, is_paywalled: true, url } satisfies ArticlePreview)

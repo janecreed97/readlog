@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
 import { Readability } from '@mozilla/readability'
 import { JSDOM } from 'jsdom'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@/lib/supabase/server'
 import type { ArticlePreview } from '@/lib/types'
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!)
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+const GEMINI_API_KEY = process.env.GOOGLE_GENERATIVE_AI_API_KEY!
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
 
 const PAYWALL_STRINGS = [
   'subscribe to read',
@@ -26,6 +25,22 @@ function detectPaywall(text: string, html: string): boolean {
   return PAYWALL_STRINGS.some((s) => lower.includes(s))
 }
 
+async function callGemini(prompt: string): Promise<string> {
+  const res = await fetch(GEMINI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+    }),
+  })
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Gemini API error ${res.status}: ${err}`)
+  }
+  const data = await res.json()
+  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+}
+
 async function summarizeWithGemini(text: string, url: string): Promise<Omit<ArticlePreview, 'is_paywalled' | 'url'>> {
   const prompt = `Given the following article text, return a JSON object with exactly these fields:
 - title (string): the article title
@@ -42,10 +57,7 @@ Article URL: ${url}
 Article text:
 ${text.slice(0, 8000)}`
 
-  const result = await model.generateContent(prompt)
-  const responseText = result.response.text().trim()
-
-  // Strip markdown code fences if Gemini wraps the response
+  const responseText = await callGemini(prompt)
   const cleaned = responseText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
   return JSON.parse(cleaned)
 }
@@ -58,15 +70,10 @@ export async function POST(request: Request) {
   const { url, pasteText } = await request.json()
   if (!url) return NextResponse.json({ error: 'URL required' }, { status: 400 })
 
-  // If the user pasted text directly, skip fetching and summarize immediately
   if (pasteText?.trim()) {
     try {
       const summary = await summarizeWithGemini(pasteText.trim(), url)
-      return NextResponse.json({
-        ...summary,
-        is_paywalled: true,
-        url,
-      } satisfies ArticlePreview)
+      return NextResponse.json({ ...summary, is_paywalled: true, url } satisfies ArticlePreview)
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       console.error('Gemini summarization error:', message)
@@ -80,13 +87,10 @@ export async function POST(request: Request) {
 
   try {
     const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; ReadLog/1.0)',
-      },
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ReadLog/1.0)' },
       signal: AbortSignal.timeout(10000),
     })
     articleHtml = await res.text()
-
     const dom = new JSDOM(articleHtml, { url })
     const reader = new Readability(dom.window.document)
     const parsed = reader.parse()
@@ -111,11 +115,7 @@ export async function POST(request: Request) {
 
   try {
     const summary = await summarizeWithGemini(articleText, url)
-    return NextResponse.json({
-      ...summary,
-      is_paywalled: false,
-      url,
-    } satisfies ArticlePreview)
+    return NextResponse.json({ ...summary, is_paywalled: false, url } satisfies ArticlePreview)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     console.error('Gemini summarization error:', message)

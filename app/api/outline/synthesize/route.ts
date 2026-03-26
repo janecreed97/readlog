@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { createClient } from '@/lib/supabase/server'
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!)
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+const GEMINI_API_KEY = process.env.GOOGLE_GENERATIVE_AI_API_KEY!
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -37,8 +36,15 @@ export async function POST(request: Request) {
 ${bulletText}`
 
   try {
-    const result = await model.generateContent(prompt)
-    return NextResponse.json({ synthesis: result.response.text().trim() })
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    })
+    if (!res.ok) throw new Error(`Gemini API error ${res.status}: ${await res.text()}`)
+    const data = await res.json()
+    const synthesis = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+    return NextResponse.json({ synthesis: synthesis.trim() })
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     console.error('Gemini synthesis error:', message)
