@@ -86,13 +86,10 @@ ${truncated}`
     const end = stripped.lastIndexOf('}')
     if (start === -1 || end === -1) throw new Error('No JSON object found in Gemini response')
     const jsonStr = stripped.slice(start, end + 1)
-    // Sanitize unescaped control characters (newlines, tabs) inside string values
-    const sanitized = jsonStr.replace(/[\u0000-\u001F]/g, (ch: string) => {
-      if (ch === '\n') return '\\n'
-      if (ch === '\r') return '\\r'
-      if (ch === '\t') return '\\t'
-      return ''
-    })
+    // Replace control characters with a space so JSON structure is preserved.
+    // (A newline between tokens stays valid as whitespace; one inside a string
+    // becomes a space, which is acceptable for our use case.)
+    const sanitized = jsonStr.replace(/[\u0000-\u001F]/g, ' ')
     payload = { ...JSON.parse(sanitized), url, is_paywalled: true }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
