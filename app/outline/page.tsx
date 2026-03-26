@@ -7,6 +7,7 @@ import type { Article } from '@/lib/types'
 import CategoryFilter from '@/components/CategoryFilter'
 import OutlineView from '@/components/OutlineView'
 import AddArticleModal from '@/components/AddArticleModal'
+import Logo from '@/components/Logo'
 
 function OutlineContent() {
   const router = useRouter()
@@ -48,7 +49,10 @@ function OutlineContent() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="h-12 sm:h-14 flex items-center justify-between gap-2">
             <div className="flex items-center gap-3 sm:gap-6">
-              <span className="font-bold text-stone-900">ALEXANDRIA</span>
+              <div className="flex items-center gap-2">
+                <Logo size={22} />
+                <span className="font-bold text-stone-900">ALEXANDRIA</span>
+              </div>
               <nav className="hidden sm:flex gap-4 text-sm">
                 <a href="/" className="text-gray-500 hover:text-gray-800">Library</a>
                 <a href="/outline" className="text-stone-900 font-medium">Outline</a>
