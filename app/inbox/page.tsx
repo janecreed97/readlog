@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { ShareRecord } from '@/lib/types'
-import Logo from '@/components/Logo'
-
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
@@ -55,11 +53,6 @@ export default function InboxPage() {
     setDismissed(d => new Set([...d, id]))
   }
 
-  async function handleSignOut() {
-    await createClient().auth.signOut()
-    router.push('/login')
-  }
-
   const visible = shares.filter(s => {
     if (dismissed.has(s.id)) return false
     if (tab === 'saved') return saved.has(s.id) || s.status === 'saved'
@@ -67,33 +60,7 @@ export default function InboxPage() {
   })
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
-      <header className="bg-white dark:bg-stone-900 border-b border-gray-200 dark:border-stone-700 sticky top-0 z-40">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="h-12 sm:h-14 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3 sm:gap-6">
-              <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <Logo size={22} />
-                <span className="font-bold text-stone-900 dark:text-stone-100">ALEXANDRIA</span>
-              </a>
-              <nav className="hidden sm:flex gap-4 text-sm">
-                <a href="/" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Library</a>
-                <a href="/friends" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Friends</a>
-                <a href="/inbox" className="text-stone-900 dark:text-stone-100 font-medium">Inbox</a>
-                <a href="/settings" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Settings</a>
-              </nav>
-            </div>
-            <button onClick={handleSignOut} className="hidden sm:block text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Sign out</button>
-          </div>
-          <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
-            <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Library</a>
-            <a href="/friends" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Friends</a>
-            <a href="/inbox" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-stone-100">Inbox</a>
-            <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Settings</a>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen">
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         <div className="flex items-center gap-1 bg-gray-100 dark:bg-stone-800 rounded-lg p-1 w-fit">
           {(['all', 'saved'] as const).map((t) => (

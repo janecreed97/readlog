@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import Logo from '@/components/Logo'
-
 export default function SettingsPage() {
   const router = useRouter()
   const [origin, setOrigin] = useState('')
@@ -42,11 +40,6 @@ export default function SettingsPage() {
     else document.documentElement.classList.remove('dark')
   }
 
-  async function handleSignOut() {
-    await createClient().auth.signOut()
-    router.push('/login')
-  }
-
   // Sensitive domain blocklist — these will be blocked in the bookmarklet
   const BLOCKED_DOMAINS = [
     'chase.com','bankofamerica.com','wellsfargo.com','citibank.com','capitalone.com',
@@ -79,36 +72,7 @@ fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'
   const ready = origin && bookmarkletKey
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
-      {/* Header */}
-      <header className="bg-white dark:bg-stone-900 border-b border-gray-200 dark:border-stone-700 sticky top-0 z-40">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="h-12 sm:h-14 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3 sm:gap-6">
-              <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <Logo size={22} />
-                <span className="font-bold text-stone-900 dark:text-stone-100">ALEXANDRIA</span>
-              </a>
-              <nav className="hidden sm:flex gap-4 text-sm">
-                <a href="/" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Library</a>
-                <a href="/friends" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Friends</a>
-                <a href="/inbox" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Inbox</a>
-                <a href="/settings" className="text-stone-900 dark:text-stone-100 font-medium">Settings</a>
-              </nav>
-            </div>
-            <button onClick={handleSignOut} className="hidden sm:block text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-              Sign out
-            </button>
-          </div>
-          <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
-            <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Library</a>
-            <a href="/friends" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Friends</a>
-            <a href="/inbox" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Inbox</a>
-            <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-stone-100">Settings</a>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen">
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-10">
         <div>
           <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-1">Settings</h1>

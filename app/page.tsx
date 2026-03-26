@@ -11,7 +11,6 @@ import AddArticleModal from '@/components/AddArticleModal'
 import HelpModal from '@/components/HelpModal'
 import ShareModal from '@/components/ShareModal'
 import OutlineView from '@/components/OutlineView'
-import Logo from '@/components/Logo'
 
 type ViewMode = 'cards' | 'chronological' | 'topic'
 
@@ -25,7 +24,6 @@ function LibraryContent() {
   const [showHelp, setShowHelp] = useState(false)
   const [shareArticle, setShareArticle] = useState<Article | null>(null)
   const [search, setSearch] = useState('')
-  const [inboxCount, setInboxCount] = useState(0)
   const [view, setView] = useState<ViewMode>('cards')
 
   const activeCategory = params.get('category') ?? ''
@@ -37,6 +35,18 @@ function LibraryContent() {
     if (stored && ['cards', 'chronological', 'topic'].includes(stored)) setView(stored)
   }, [])
 
+  // Listen for header button events
+  useEffect(() => {
+    const onAdd = () => setShowAdd(true)
+    const onHelp = () => setShowHelp(true)
+    window.addEventListener('alexandria:add', onAdd)
+    window.addEventListener('alexandria:help', onHelp)
+    return () => {
+      window.removeEventListener('alexandria:add', onAdd)
+      window.removeEventListener('alexandria:help', onHelp)
+    }
+  }, [])
+
   function changeView(v: ViewMode) {
     setView(v)
     localStorage.setItem('alex-view', v)
@@ -44,10 +54,7 @@ function LibraryContent() {
 
   const fetchArticles = useCallback(async () => {
     const res = await fetch('/api/articles')
-    if (res.ok) {
-      const data = await res.json()
-      setArticles(data)
-    }
+    if (res.ok) setArticles(await res.json())
     setLoading(false)
   }, [])
 
@@ -56,14 +63,10 @@ function LibraryContent() {
     fetch('/api/profile').then(r => r.json()).then(profile => {
       if (profile === null) router.push('/profile/setup')
     })
-    fetch('/api/inbox?unread=true').then(r => r.json()).then(data => {
-      if (data && typeof data.count === 'number') setInboxCount(data.count)
-    })
   }, [fetchArticles, router])
 
   async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    await createClient().auth.signOut()
     router.push('/login')
   }
 
@@ -92,50 +95,7 @@ function LibraryContent() {
   const maxW = view === 'cards' ? 'max-w-6xl' : 'max-w-4xl'
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
-      <header className="bg-white dark:bg-stone-900 border-b border-gray-200 dark:border-stone-700 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="h-12 sm:h-14 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3 sm:gap-6">
-              <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <Logo size={22} />
-                <span className="font-bold text-stone-900 dark:text-stone-100">ALEXANDRIA</span>
-              </a>
-              <nav className="hidden sm:flex gap-4 text-sm">
-                <span className="text-stone-900 dark:text-stone-100 font-medium">Library</span>
-                <a href="/friends" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Friends</a>
-                <a href="/inbox" className="relative text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
-                  Inbox{inboxCount > 0 && <span className="ml-1 inline-flex items-center justify-center bg-amber-500 text-white text-xs rounded-full px-1.5 py-0.5 font-medium leading-none">{inboxCount}</span>}
-                </a>
-                <a href="/settings" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Settings</a>
-              </nav>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                onClick={() => setShowAdd(true)}
-                className="bg-gray-900 text-white text-sm font-medium px-3 sm:px-4 py-1.5 rounded-lg hover:bg-gray-700"
-              >
-                <span className="sm:hidden">+</span>
-                <span className="hidden sm:inline">+ Add article</span>
-              </button>
-              <button onClick={() => setShowHelp(true)} className="hidden sm:flex items-center justify-center w-6 h-6 rounded-md border border-gray-300 dark:border-stone-600 text-xs text-gray-400 dark:text-gray-500 hover:border-gray-500 dark:hover:border-stone-400 hover:text-gray-600 dark:hover:text-gray-300" aria-label="Help">
-                ?
-              </button>
-              <button onClick={handleSignOut} className="hidden sm:block text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                Sign out
-              </button>
-            </div>
-          </div>
-          <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
-            <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-stone-100">Library</a>
-            <a href="/friends" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Friends</a>
-            <a href="/inbox" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Inbox</a>
-            <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Settings</a>
-            <button onClick={handleSignOut} className="px-3 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border-l border-gray-100 dark:border-stone-800">Out</button>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen">
       <main className={`${maxW} mx-auto px-4 sm:px-6 py-6 space-y-5`}>
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div className="flex-1">

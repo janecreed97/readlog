@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import HeaderNav from '@/components/HeaderNav'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${inter.className} bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100`}>
+        <HeaderNav />
         {children}
       </body>
     </html>
