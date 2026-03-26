@@ -19,9 +19,12 @@ export default function ArticleCard({ article, onClick }: Props) {
   const firstBullet = article.bullets?.[0]?.content
 
   return (
-    <button
+    <div
       onClick={onClick}
-      className="text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-400 hover:shadow-sm transition-all space-y-3 w-full"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      className="cursor-pointer text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-400 hover:shadow-sm transition-all space-y-3 w-full"
     >
       {/* Header */}
       <div className="flex items-center gap-2">
@@ -39,10 +42,16 @@ export default function ArticleCard({ article, onClick }: Props) {
         )}
       </div>
 
-      {/* Title */}
-      <p className="font-semibold text-stone-900 text-sm leading-snug line-clamp-2">
+      {/* Title — links to article, rest of card opens detail drawer */}
+      <a
+        href={article.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className="block font-semibold text-stone-900 text-sm leading-snug line-clamp-2 hover:underline hover:text-amber-800"
+      >
         {article.title}
-      </p>
+      </a>
 
       {/* Dates */}
       <div className="flex gap-3 text-xs text-gray-400">
@@ -68,6 +77,6 @@ export default function ArticleCard({ article, onClick }: Props) {
       {firstBullet && (
         <p className="text-xs text-gray-500 italic line-clamp-1">{firstBullet}</p>
       )}
-    </button>
+    </div>
   )
 }
