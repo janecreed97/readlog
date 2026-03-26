@@ -65,33 +65,62 @@ ${text.slice(0, 8000)}`
   return JSON.parse(cleaned)
 }
 
+/** Regex-based meta extraction — more reliable than querySelector on raw paywall HTML */
 function extractMetaFromHtml(html: string, url: string): { title: string; source: string; published_date: string | null } {
-  const { document } = parseHTML(html)
-
-  function getMeta(...names: string[]): string {
-    for (const name of names) {
-      const val = (
-        document.querySelector(`meta[property="${name}"]`) ??
-        document.querySelector(`meta[name="${name}"]`)
-      )?.getAttribute('content')?.trim()
-      if (val) return val
+  function getMetaContent(...attrs: string[]): string {
+    for (const attr of attrs) {
+      // handles both attribute orderings: property/name before content, and content before property/name
+      const patterns = [
+        new RegExp(`<meta[^>]+(?:property|name)=["']${attr}["'][^>]+content=["']([^"'<>]+)["']`, 'i'),
+        new RegExp(`<meta[^>]+content=["']([^"'<>]+)["'][^>]+(?:property|name)=["']${attr}["']`, 'i'),
+      ]
+      for (const re of patterns) {
+        const val = html.match(re)?.[1]?.trim()
+        if (val) return val
+      }
     }
     return ''
   }
 
-  const title =
-    getMeta('og:title', 'twitter:title') ||
-    document.querySelector('title')?.textContent?.trim() ||
-    ''
+  const titleTag = html.match(/<title[^>]*>([^<]{3,})<\/title>/i)?.[1]?.trim() ?? ''
 
-  const source =
-    getMeta('og:site_name') ||
-    new URL(url).hostname.replace('www.', '')
+  const title = getMetaContent('og:title', 'twitter:title') || titleTag
 
-  const rawDate = getMeta('article:published_time', 'datePublished', 'date', 'pubdate', 'DC.date')
+  const source = getMetaContent('og:site_name') || new URL(url).hostname.replace('www.', '')
+
+  const rawDate = getMetaContent('article:published_time', 'datePublished', 'date', 'pubdate', 'DC.date')
   const published_date = rawDate ? rawDate.slice(0, 10) : null
 
   return { title, source, published_date }
+}
+
+/** Extract title and date from the URL slug itself as a last resort */
+function extractFromUrl(url: string): { title: string | null; published_date: string | null } {
+  try {
+    const { pathname } = new URL(url)
+
+    // Date: /2024/01/15/ or -2024-01-15 anywhere in path
+    const dateMatch = pathname.match(/[\/\-](\d{4})[\/\-](0[1-9]|1[0-2])[\/\-](0[1-9]|[12]\d|3[01])/)
+    const published_date = dateMatch ? `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}` : null
+
+    // Title: last path segment that looks like a slug (contains hyphens, not purely numeric)
+    const segments = pathname.split('/').filter((s) => s.length > 8 && s.includes('-') && !/^\d+$/.test(s))
+    const slug = segments.at(-1)?.replace(/\.(html?|php|aspx?)$/i, '') ?? ''
+
+    if (slug.length > 8) {
+      const title = slug
+        .replace(/[_-][a-zA-Z0-9]{6,}$/, '')   // strip trailing IDs like -aB3f9kLm
+        .replace(/[_-]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\b\w/g, (c) => c.toUpperCase()) // title case
+      return { title: title.length > 8 ? title : null, published_date }
+    }
+
+    return { title: null, published_date }
+  } catch {
+    return { title: null, published_date: null }
+  }
 }
 
 export async function POST(request: Request) {
@@ -134,11 +163,14 @@ export async function POST(request: Request) {
 
   if (!articleText || isPaywalled) {
     const meta = extractMetaFromHtml(articleHtml, url)
+    const fromUrl = extractFromUrl(url)
     return NextResponse.json({
-      ...meta,
-      category: '',
+      title:          meta.title          || fromUrl.title          || '',
+      source:         meta.source,
+      published_date: meta.published_date ?? fromUrl.published_date ?? null,
+      category:    '',
       subcategory: '',
-      bullets: [],
+      bullets:     [],
       is_paywalled: true,
       url,
     } satisfies ArticlePreview)
