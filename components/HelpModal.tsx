@@ -2,54 +2,79 @@
 
 interface Props {
   onClose: () => void
+  onReplayTutorial: () => void
 }
 
 const sections = [
   {
     title: 'Adding an article',
     items: [
-      'Click + (or + Add article) in the top bar.',
-      'Paste any article URL and hit Fetch & summarize — Alexandria will pull the text and generate key takeaways automatically.',
-      'Paywalled? Alexandria will extract what it can from the page (title, source, date). You can then paste the article text, upload a screenshot, or save without a summary.',
-      'Optional Direction field: tell the summary engine how to approach the article before fetching — e.g. "Surface counterarguments" or "Facts and stats only". You can also re-summarize from the preview screen after changing the direction.',
+      'Click + Add article in the top bar. Paste any URL and hit Fetch & summarize — Alexandria pulls the text and generates key takeaways automatically.',
+      'Use the Direction field to steer the AI before fetching — e.g. "Surface counterarguments" or "Facts and stats only". You can also re-summarize from the preview screen.',
+      'Paywalled? Alexandria extracts what it can. You can paste the article text, upload a screenshot, or save without a summary.',
     ],
   },
   {
-    title: 'Library',
+    title: 'Save from your browser (bookmarklet)',
     items: [
-      'All saved articles appear here as cards.',
-      'Click the article title to open it in a new tab.',
-      'Click anywhere else on a card to open the detail view.',
-      'Filter by category or subcategory using the pills at the top. Click All to reset.',
-      'Use the search bar to find articles by keyword.',
+      'Go to Settings → Save from Browser and drag the button to your bookmarks bar.',
+      'Click it on any article you\'re already reading — including paywalled ones you subscribe to — and a small window opens with the article pre-summarised.',
+      'Sensitive sites (banking, email, health) are automatically blocked. The bookmarklet only runs when you click it and has no background access.',
+      'Allow popups for Alexandria when your browser prompts you — the bookmarklet opens a save window.',
+    ],
+  },
+  {
+    title: 'Library views',
+    items: [
+      'Cards: the default grid view — each article as a card with category, takeaways, and a share button.',
+      'Chronological: a timeline of everything you\'ve saved, newest first.',
+      'By Topic: articles grouped by category and subcategory, useful for reviewing a theme.',
+      'Your last-used view is remembered. Switch using the toggle above the article grid.',
+    ],
+  },
+  {
+    title: 'Filtering & search',
+    items: [
+      'Filter by category or subcategory using the pills at the top of the library. Click the active pill again (or All) to reset.',
+      'Use the search bar to find articles by keyword — searches titles and key takeaways.',
     ],
   },
   {
     title: 'Editing an article',
     items: [
-      'Open a card, then click any field (title, source, date, category, subcategory) to edit it inline.',
+      'Click anywhere on a card (except the title link) to open the detail view.',
+      'Click any field — title, source, date, category, subcategory — to edit it inline. A dropdown shows all existing values.',
       'Key takeaways can be edited, reordered by dragging, or deleted individually.',
-      'Hit Save changes when done — the modal closes automatically.',
+      'Hit Save changes when done.',
+    ],
+  },
+  {
+    title: 'Friends & sharing',
+    items: [
+      'Go to Friends to find people by username (min 3 characters) and send a friend request.',
+      'Once connected, open any article card and click the share icon to send it to one or more friends with an optional note.',
+      'A badge on the Friends tab shows pending requests. Accept or decline directly on the Friends page.',
+    ],
+  },
+  {
+    title: 'Inbox',
+    items: [
+      'Articles shared with you by friends appear here. Unread items have an amber left border.',
+      'Click Save to Library to add a shared article to your own collection.',
+      'If you later delete that article, the Save to Library button reappears in your Inbox so you can save it again.',
+      'Dismiss removes the item from your inbox without saving it.',
     ],
   },
   {
     title: 'Categories & subcategories',
     items: [
       'Alexandria auto-assigns a category and subcategory when summarising.',
-      'Once you\'ve used a category or subcategory, it appears as a suggestion when adding or editing future articles — so your taxonomy stays consistent over time.',
-    ],
-  },
-  {
-    title: 'Outline view',
-    items: [
-      'Switch to Outline in the nav to see all your articles grouped by category.',
-      'Each group can be synthesised by AI into a coherent summary of everything you\'ve read in that area.',
-      'Article titles in the outline link directly to the original source.',
+      'Once you\'ve used a category or subcategory, it appears as a suggestion when adding or editing future articles — keeping your taxonomy consistent.',
     ],
   },
 ]
 
-export default function HelpModal({ onClose }: Props) {
+export default function HelpModal({ onClose, onReplayTutorial }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-black/40"
@@ -66,7 +91,7 @@ export default function HelpModal({ onClose }: Props) {
         </div>
 
         {/* Content */}
-        <div className="px-6 py-5 space-y-6">
+        <div className="px-6 py-5 space-y-6 flex-1">
           {sections.map((section) => (
             <div key={section.title}>
               <h3 className="text-sm font-semibold text-stone-900 dark:text-stone-100 mb-2">{section.title}</h3>
@@ -80,6 +105,16 @@ export default function HelpModal({ onClose }: Props) {
               </ul>
             </div>
           ))}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t dark:border-stone-700">
+          <button
+            onClick={() => { onClose(); onReplayTutorial() }}
+            className="text-sm text-amber-700 dark:text-amber-400 hover:underline font-medium"
+          >
+            Replay getting started tutorial →
+          </button>
         </div>
       </div>
     </div>

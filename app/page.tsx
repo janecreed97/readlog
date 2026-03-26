@@ -8,7 +8,6 @@ import ArticleCard from '@/components/ArticleCard'
 import ArticleDetail from '@/components/ArticleDetail'
 import CategoryFilter from '@/components/CategoryFilter'
 import AddArticleModal from '@/components/AddArticleModal'
-import HelpModal from '@/components/HelpModal'
 import ShareModal from '@/components/ShareModal'
 import OutlineView from '@/components/OutlineView'
 
@@ -21,7 +20,6 @@ function LibraryContent() {
   const [loading, setLoading] = useState(true)
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
   const [showAdd, setShowAdd] = useState(false)
-  const [showHelp, setShowHelp] = useState(false)
   const [shareArticle, setShareArticle] = useState<Article | null>(null)
   const [search, setSearch] = useState('')
   const [view, setView] = useState<ViewMode>('cards')
@@ -35,16 +33,11 @@ function LibraryContent() {
     if (stored && ['cards', 'chronological', 'topic'].includes(stored)) setView(stored)
   }, [])
 
-  // Listen for header button events
+  // Listen for add event dispatched by header
   useEffect(() => {
     const onAdd = () => setShowAdd(true)
-    const onHelp = () => setShowHelp(true)
     window.addEventListener('alexandria:add', onAdd)
-    window.addEventListener('alexandria:help', onHelp)
-    return () => {
-      window.removeEventListener('alexandria:add', onAdd)
-      window.removeEventListener('alexandria:help', onHelp)
-    }
+    return () => window.removeEventListener('alexandria:add', onAdd)
   }, [])
 
   function changeView(v: ViewMode) {
@@ -202,8 +195,7 @@ function LibraryContent() {
           existingSubcategories={subcategories}
         />
       )}
-      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
-      {shareArticle && <ShareModal article={shareArticle} onClose={() => setShareArticle(null)} />}
+{shareArticle && <ShareModal article={shareArticle} onClose={() => setShareArticle(null)} />}
     </div>
   )
 }
