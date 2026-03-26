@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const GEMINI_API_KEY = process.env.GOOGLE_GENERATIVE_AI_API_KEY!
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
@@ -10,7 +10,7 @@ function cors(request: Request) {
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Bookmarklet-Key',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   }
 }
@@ -20,12 +20,25 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
+  // Auth via personal API key embedded in the bookmarklet (cookies don't cross origins)
+  const bookmarkletKey = request.headers.get('x-bookmarklet-key')
+  if (!bookmarkletKey) {
     return NextResponse.json(
-      { error: 'Not logged in to Alexandria. Please log in first, then try again.' },
+      { error: 'Not logged in to Alexandria. Please visit Alexandria settings to get your bookmarklet.' },
+      { status: 401, headers: cors(request) },
+    )
+  }
+
+  const admin = createAdminClient()
+  const { data: keyRow } = await admin
+    .from('user_keys')
+    .select('user_id')
+    .eq('bookmarklet_key', bookmarkletKey)
+    .single()
+
+  if (!keyRow) {
+    return NextResponse.json(
+      { error: 'Invalid bookmarklet key — please re-drag the button from Alexandria Settings.' },
       { status: 401, headers: cors(request) },
     )
   }
@@ -77,9 +90,9 @@ ${truncated}`
   }
 
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
-  const { data: token, error } = await supabase
+  const { data: token, error } = await admin
     .from('tokens')
-    .insert({ user_id: user.id, payload, expires_at: expiresAt, used: false })
+    .insert({ user_id: keyRow.user_id, payload, expires_at: expiresAt, used: false })
     .select('id')
     .single()
 

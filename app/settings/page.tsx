@@ -8,11 +8,16 @@ import Logo from '@/components/Logo'
 export default function SettingsPage() {
   const router = useRouter()
   const [origin, setOrigin] = useState('')
+  const [bookmarkletKey, setBookmarkletKey] = useState('')
 
   useEffect(() => {
     setOrigin(window.location.origin)
     createClient().auth.getUser().then(({ data: { user } }) => {
-      if (!user) router.push('/login')
+      if (!user) { router.push('/login'); return }
+      // Fetch (or auto-create) the personal bookmarklet key
+      fetch('/api/user/key').then((r) => r.json()).then((d) => {
+        if (d.key) setBookmarkletKey(d.key)
+      })
     })
   }, [router])
 
@@ -21,10 +26,12 @@ export default function SettingsPage() {
     router.push('/login')
   }
 
-  // Minified bookmarklet — origin is interpolated at render time
-  const bookmarklet = origin
-    ? `javascript:(function(){var u=window.location.href;var t=document.body.innerText;fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:u,text:t}),credentials:'include'}).then(function(r){return r.json()}).then(function(d){if(d.error){alert('Alexandria: '+d.error);return;}window.open('${origin}/add?token='+d.token,'alexandria','width=520,height=700,resizable=yes');}).catch(function(){alert('Alexandria: could not connect. Make sure you are logged in first.');});})();`
+  // Minified bookmarklet — embeds personal API key so it works cross-origin without cookies
+  const bookmarklet = (origin && bookmarkletKey)
+    ? `javascript:(function(){var u=window.location.href;var t=document.body.innerText;fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'application/json','X-Bookmarklet-Key':'${bookmarkletKey}'},body:JSON.stringify({url:u,text:t})}).then(function(r){return r.json()}).then(function(d){if(d.error){alert('Alexandria: '+d.error);return;}window.open('${origin}/add?token='+d.token,'alexandria','width=520,height=700,resizable=yes');}).catch(function(){alert('Alexandria: could not connect.');});})();`
     : '#'
+
+  const ready = origin && bookmarkletKey
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -74,26 +81,32 @@ export default function SettingsPage() {
           {/* Draggable bookmarklet button */}
           <div className="space-y-3">
             <div className="flex items-start gap-4">
-              <a
-                href={bookmarklet}
-                onClick={(e) => e.preventDefault()}
-                draggable
-                className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-5 py-2.5 rounded-lg cursor-grab active:cursor-grabbing select-none shrink-0"
-              >
-                <svg width="14" height="14" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-80">
-                  <polygon points="16,2 4,9 28,9" fill="white"/>
-                  <rect x="4" y="9" width="24" height="2.5" fill="white"/>
-                  <rect x="5" y="11.5" width="2.5" height="10" fill="white"/>
-                  <rect x="10" y="11.5" width="2.5" height="10" fill="white"/>
-                  <rect x="14.75" y="11.5" width="2.5" height="10" fill="white"/>
-                  <rect x="19.5" y="11.5" width="2.5" height="10" fill="white"/>
-                  <rect x="24.5" y="11.5" width="2.5" height="10" fill="white"/>
-                  <rect x="3" y="21.5" width="26" height="2" fill="white"/>
-                  <rect x="1.5" y="23.5" width="29" height="2" fill="white"/>
-                  <rect x="0" y="25.5" width="32" height="2.5" fill="white"/>
-                </svg>
-                Save to Alexandria
-              </a>
+              {!ready ? (
+                <div className="inline-flex items-center gap-2 bg-gray-300 text-white text-sm font-medium px-5 py-2.5 rounded-lg shrink-0 animate-pulse">
+                  <span className="w-20 h-4 bg-white/30 rounded" />
+                </div>
+              ) : (
+                <a
+                  href={bookmarklet}
+                  onClick={(e) => e.preventDefault()}
+                  draggable
+                  className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-5 py-2.5 rounded-lg cursor-grab active:cursor-grabbing select-none shrink-0"
+                >
+                  <svg width="14" height="14" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-80">
+                    <polygon points="16,2 4,9 28,9" fill="white"/>
+                    <rect x="4" y="9" width="24" height="2.5" fill="white"/>
+                    <rect x="5" y="11.5" width="2.5" height="10" fill="white"/>
+                    <rect x="10" y="11.5" width="2.5" height="10" fill="white"/>
+                    <rect x="14.75" y="11.5" width="2.5" height="10" fill="white"/>
+                    <rect x="19.5" y="11.5" width="2.5" height="10" fill="white"/>
+                    <rect x="24.5" y="11.5" width="2.5" height="10" fill="white"/>
+                    <rect x="3" y="21.5" width="26" height="2" fill="white"/>
+                    <rect x="1.5" y="23.5" width="29" height="2" fill="white"/>
+                    <rect x="0" y="25.5" width="32" height="2.5" fill="white"/>
+                  </svg>
+                  Save to Alexandria
+                </a>
+              )}
               <div className="text-sm text-gray-500 pt-1">
                 <p className="font-medium text-stone-900 mb-1">Drag this button to your bookmarks bar.</p>
                 <p>Then click it on any article you want to save — including paywalled ones you're already logged in to.</p>
