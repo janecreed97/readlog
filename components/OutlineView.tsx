@@ -7,6 +7,7 @@ interface Props {
   articles: Article[]
   activeCategory: string
   activeSub: string
+  mode: 'chronological' | 'topic'
 }
 
 function formatMonth(dateStr: string) {
@@ -165,42 +166,16 @@ function TopicView({ articles, activeCategory }: { articles: Article[]; activeCa
   )
 }
 
-export default function OutlineView({ articles, activeCategory, activeSub }: Props) {
-  const [mode, setMode] = useState<'chronological' | 'topic'>('chronological')
-
-  const filtered = articles.filter((a) => {
-    if (activeCategory && a.category !== activeCategory) return false
-    if (activeSub && a.subcategory !== activeSub) return false
-    return true
-  })
-
-  return (
-    <div className="space-y-6">
-      {/* Mode toggle */}
-      <div className="flex items-center gap-1 bg-gray-100 dark:bg-stone-800 rounded-lg p-1 w-fit">
-        {(['chronological', 'topic'] as const).map((m) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
-              mode === m ? 'bg-white dark:bg-stone-700 shadow text-stone-900 dark:text-stone-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-            }`}
-          >
-            {m === 'chronological' ? 'Chronological' : 'By Topic'}
-          </button>
-        ))}
+export default function OutlineView({ articles, activeCategory, mode }: Props) {
+  if (articles.length === 0) {
+    return (
+      <div className="py-16 text-center text-gray-400">
+        <p className="text-4xl mb-3">📚</p>
+        <p className="text-sm">No articles match the current filter.</p>
       </div>
-
-      {filtered.length === 0 ? (
-        <div className="py-16 text-center text-gray-400">
-          <p className="text-4xl mb-3">📚</p>
-          <p className="text-sm">No articles match the current filter.</p>
-        </div>
-      ) : mode === 'chronological' ? (
-        <ChronologicalView articles={filtered} />
-      ) : (
-        <TopicView articles={filtered} activeCategory={activeCategory} />
-      )}
-    </div>
-  )
+    )
+  }
+  return mode === 'chronological'
+    ? <ChronologicalView articles={articles} />
+    : <TopicView articles={articles} activeCategory={activeCategory} />
 }

@@ -10,7 +10,10 @@ import CategoryFilter from '@/components/CategoryFilter'
 import AddArticleModal from '@/components/AddArticleModal'
 import HelpModal from '@/components/HelpModal'
 import ShareModal from '@/components/ShareModal'
+import OutlineView from '@/components/OutlineView'
 import Logo from '@/components/Logo'
+
+type ViewMode = 'cards' | 'chronological' | 'topic'
 
 function LibraryContent() {
   const router = useRouter()
@@ -23,9 +26,21 @@ function LibraryContent() {
   const [shareArticle, setShareArticle] = useState<Article | null>(null)
   const [search, setSearch] = useState('')
   const [inboxCount, setInboxCount] = useState(0)
+  const [view, setView] = useState<ViewMode>('cards')
 
   const activeCategory = params.get('category') ?? ''
   const activeSub = params.get('sub') ?? ''
+
+  // Restore persisted view on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('alex-view') as ViewMode | null
+    if (stored && ['cards', 'chronological', 'topic'].includes(stored)) setView(stored)
+  }, [])
+
+  function changeView(v: ViewMode) {
+    setView(v)
+    localStorage.setItem('alex-view', v)
+  }
 
   const fetchArticles = useCallback(async () => {
     const res = await fetch('/api/articles')
@@ -38,13 +53,9 @@ function LibraryContent() {
 
   useEffect(() => {
     fetchArticles()
-    // Fetch profile - redirect to setup if not found
     fetch('/api/profile').then(r => r.json()).then(profile => {
-      if (profile === null) {
-        router.push('/profile/setup')
-      }
+      if (profile === null) router.push('/profile/setup')
     })
-    // Fetch inbox unread count
     fetch('/api/inbox?unread=true').then(r => r.json()).then(data => {
       if (data && typeof data.count === 'number') setInboxCount(data.count)
     })
@@ -78,19 +89,20 @@ function LibraryContent() {
     return true
   })
 
+  const maxW = view === 'cards' ? 'max-w-6xl' : 'max-w-4xl'
+
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
       <header className="bg-white dark:bg-stone-900 border-b border-gray-200 dark:border-stone-700 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="h-12 sm:h-14 flex items-center justify-between gap-2">
             <div className="flex items-center gap-3 sm:gap-6">
-              <div className="flex items-center gap-2">
+              <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <Logo size={22} />
                 <span className="font-bold text-stone-900 dark:text-stone-100">ALEXANDRIA</span>
-              </div>
+              </a>
               <nav className="hidden sm:flex gap-4 text-sm">
-                <a href="/" className="text-stone-900 dark:text-stone-100 font-medium">Library</a>
-                <a href="/outline" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Outline</a>
+                <span className="text-stone-900 dark:text-stone-100 font-medium">Library</span>
                 <a href="/friends" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Friends</a>
                 <a href="/inbox" className="relative text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
                   Inbox{inboxCount > 0 && <span className="ml-1 inline-flex items-center justify-center bg-amber-500 text-white text-xs rounded-full px-1.5 py-0.5 font-medium leading-none">{inboxCount}</span>}
@@ -116,15 +128,15 @@ function LibraryContent() {
           </div>
           <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
             <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-stone-100">Library</a>
-            <a href="/outline" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Outline</a>
             <a href="/friends" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Friends</a>
             <a href="/inbox" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Inbox</a>
             <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Settings</a>
+            <button onClick={handleSignOut} className="px-3 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border-l border-gray-100 dark:border-stone-800">Out</button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+      <main className={`${maxW} mx-auto px-4 sm:px-6 py-6 space-y-5`}>
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div className="flex-1">
             <CategoryFilter categories={categories} subcategories={subcategories} />
@@ -138,10 +150,28 @@ function LibraryContent() {
           />
         </div>
 
-        <p className="text-xs text-gray-400 dark:text-gray-500">
-          {filtered.length} {filtered.length === 1 ? 'article' : 'articles'}
-          {(activeCategory || activeSub || search) ? ' matching filters' : ' saved'}
-        </p>
+        {/* View toggle */}
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            {filtered.length} {filtered.length === 1 ? 'article' : 'articles'}
+            {(activeCategory || activeSub || search) ? ' matching filters' : ' saved'}
+          </p>
+          <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-stone-800 rounded-lg p-1">
+            {([['cards', 'Cards'], ['chronological', 'Chronological'], ['topic', 'By Topic']] as [ViewMode, string][]).map(([v, label]) => (
+              <button
+                key={v}
+                onClick={() => changeView(v)}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  view === v
+                    ? 'bg-white dark:bg-stone-700 shadow text-stone-900 dark:text-stone-100'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -166,7 +196,7 @@ function LibraryContent() {
               </button>
             )}
           </div>
-        ) : (
+        ) : view === 'cards' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((article) => (
               <ArticleCard
@@ -177,6 +207,13 @@ function LibraryContent() {
               />
             ))}
           </div>
+        ) : (
+          <OutlineView
+            articles={filtered}
+            activeCategory={activeCategory}
+            activeSub={activeSub}
+            mode={view}
+          />
         )}
       </main>
 

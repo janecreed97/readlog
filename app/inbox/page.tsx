@@ -72,13 +72,12 @@ export default function InboxPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="h-12 sm:h-14 flex items-center justify-between gap-2">
             <div className="flex items-center gap-3 sm:gap-6">
-              <div className="flex items-center gap-2">
+              <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <Logo size={22} />
                 <span className="font-bold text-stone-900 dark:text-stone-100">ALEXANDRIA</span>
-              </div>
+              </a>
               <nav className="hidden sm:flex gap-4 text-sm">
                 <a href="/" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Library</a>
-                <a href="/outline" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Outline</a>
                 <a href="/friends" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Friends</a>
                 <a href="/inbox" className="text-stone-900 dark:text-stone-100 font-medium">Inbox</a>
                 <a href="/settings" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Settings</a>
@@ -88,7 +87,6 @@ export default function InboxPage() {
           </div>
           <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
             <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Library</a>
-            <a href="/outline" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Outline</a>
             <a href="/friends" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Friends</a>
             <a href="/inbox" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 dark:text-stone-100 border-b-2 border-stone-900 dark:border-stone-100">Inbox</a>
             <a href="/settings" className="flex-1 text-center text-xs font-medium py-2 text-gray-400 dark:text-gray-500">Settings</a>
