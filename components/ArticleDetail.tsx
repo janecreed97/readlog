@@ -120,7 +120,7 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, 
                       type={type}
                       value={fields[name]}
                       onChange={(e) => setFields((f) => ({ ...f, [name]: e.target.value }))}
-                      onBlur={() => setEditingField(null)}
+                      onBlur={() => setTimeout(() => setEditingField(null), 200)}
                       list={list}
                       className="w-full text-sm border border-gray-200 dark:border-stone-600 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-stone-400 dark:bg-stone-800 dark:text-stone-100"
                     />

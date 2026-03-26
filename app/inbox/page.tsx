@@ -115,8 +115,13 @@ export default function InboxPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-3 pt-1">
-                    {isSaved ? (
+                    {saved.has(share.id) ? (
                       <span className="text-sm text-green-600 dark:text-green-400 font-medium">✓ Saved to Library</span>
+                    ) : share.status === 'saved' ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-green-600 dark:text-green-400 font-medium">✓ Saved to Library</span>
+                        <button onClick={() => handleSave(share.id)} className="text-xs text-amber-700 dark:text-amber-400 hover:underline">Save again</button>
+                      </div>
                     ) : (
                       <button onClick={() => handleSave(share.id)} className="text-sm font-medium bg-gray-900 text-white px-4 py-1.5 rounded-lg hover:bg-gray-700">Save to Library</button>
                     )}

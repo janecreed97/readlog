@@ -13,12 +13,17 @@ export default function HeaderNav() {
   const pathname = usePathname()
   const router = useRouter()
   const [inboxCount, setInboxCount] = useState(0)
+  const [friendsCount, setFriendsCount] = useState(0)
 
-  // Refresh inbox badge on each navigation
+  // Refresh badges on each navigation
   useEffect(() => {
     fetch('/api/inbox?unread=true')
       .then(r => r.json())
       .then(data => { if (typeof data?.count === 'number') setInboxCount(data.count) })
+      .catch(() => {})
+    fetch('/api/friends/requests')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setFriendsCount(data.length) })
       .catch(() => {})
   }, [pathname])
 
@@ -59,7 +64,14 @@ export default function HeaderNav() {
             </Link>
             <nav className="hidden sm:flex gap-4 text-sm">
               <Link href="/" className={navCls(isLibrary)}>Library</Link>
-              <Link href="/friends" className={navCls(isFriends)}>Friends</Link>
+              <Link href="/friends" className={`relative ${navCls(isFriends)}`}>
+                Friends
+                {friendsCount > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center bg-amber-500 text-white text-xs rounded-full px-1.5 py-0.5 font-medium leading-none">
+                    {friendsCount}
+                  </span>
+                )}
+              </Link>
               <Link href="/inbox" className={`relative ${navCls(isInbox)}`}>
                 Inbox
                 {inboxCount > 0 && (
@@ -103,7 +115,9 @@ export default function HeaderNav() {
         {/* Mobile tab bar */}
         <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
           <Link href="/" className={tabCls(isLibrary)}>Library</Link>
-          <Link href="/friends" className={tabCls(isFriends)}>Friends</Link>
+          <Link href="/friends" className={tabCls(isFriends)}>
+            Friends{friendsCount > 0 && <span className="ml-0.5 text-amber-500">·</span>}
+          </Link>
           <Link href="/inbox" className={tabCls(isInbox)}>
             Inbox{inboxCount > 0 && <span className="ml-0.5 text-amber-500">·</span>}
           </Link>
