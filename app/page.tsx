@@ -1,101 +1,175 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useEffect, useState, useCallback, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import type { Article } from '@/lib/types'
+import ArticleCard from '@/components/ArticleCard'
+import ArticleDetail from '@/components/ArticleDetail'
+import CategoryFilter from '@/components/CategoryFilter'
+import AddArticleModal from '@/components/AddArticleModal'
+
+function LibraryContent() {
+  const router = useRouter()
+  const params = useSearchParams()
+  const [articles, setArticles] = useState<Article[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
+  const [showAdd, setShowAdd] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const activeCategory = params.get('category') ?? ''
+  const activeSub = params.get('sub') ?? ''
+
+  const fetchArticles = useCallback(async () => {
+    const res = await fetch('/api/articles')
+    if (res.ok) {
+      const data = await res.json()
+      setArticles(data)
+    }
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { fetchArticles() }, [fetchArticles])
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  const categories = Array.from(new Set(articles.map((a) => a.category).filter(Boolean))).sort()
+  const subcategories: Record<string, string[]> = {}
+  for (const a of articles) {
+    if (!a.category || !a.subcategory) continue
+    if (!subcategories[a.category]) subcategories[a.category] = []
+    if (!subcategories[a.category].includes(a.subcategory)) {
+      subcategories[a.category].push(a.subcategory)
+    }
+  }
+
+  const filtered = articles.filter((a) => {
+    if (activeCategory && a.category !== activeCategory) return false
+    if (activeSub && a.subcategory !== activeSub) return false
+    if (search) {
+      const q = search.toLowerCase()
+      const inTitle = a.title.toLowerCase().includes(q)
+      const inBullets = a.bullets?.some((b) => b.content.toLowerCase().includes(q))
+      if (!inTitle && !inBullets) return false
+    }
+    return true
+  })
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <span className="font-bold text-gray-900">ReadLog</span>
+            <nav className="flex gap-4 text-sm">
+              <a href="/" className="text-gray-900 font-medium">Library</a>
+              <a href="/outline" className="text-gray-500 hover:text-gray-800">Outline</a>
+            </nav>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAdd(true)}
+              className="bg-gray-900 text-white text-sm font-medium px-4 py-1.5 rounded-lg hover:bg-gray-700"
+            >
+              + Add article
+            </button>
+            <button onClick={handleSignOut} className="text-sm text-gray-400 hover:text-gray-700">
+              Sign out
+            </button>
+          </div>
         </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="flex-1">
+            <CategoryFilter categories={categories} subcategories={subcategories} />
+          </div>
+          <input
+            type="search"
+            placeholder="Search titles and bullets…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        <p className="text-xs text-gray-400">
+          {filtered.length} {filtered.length === 1 ? 'article' : 'articles'}
+          {(activeCategory || activeSub || search) ? ' matching filters' : ' saved'}
+        </p>
+
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 space-y-3 animate-pulse">
+                <div className="h-3 bg-gray-100 rounded w-1/3" />
+                <div className="h-4 bg-gray-100 rounded w-4/5" />
+                <div className="h-4 bg-gray-100 rounded w-2/3" />
+                <div className="h-3 bg-gray-100 rounded w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-24 text-center space-y-3">
+            <p className="text-4xl">📰</p>
+            <p className="text-gray-500 font-medium">
+              {articles.length === 0 ? 'No articles yet.' : 'No articles match your filters.'}
+            </p>
+            {articles.length === 0 && (
+              <button onClick={() => setShowAdd(true)} className="text-sm text-blue-600 hover:underline">
+                Add your first article
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((article) => (
+              <ArticleCard
+                key={article.id}
+                article={article}
+                onClick={() => setSelectedArticle(article)}
+              />
+            ))}
+          </div>
+        )}
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      {selectedArticle && (
+        <ArticleDetail
+          article={selectedArticle}
+          onClose={() => setSelectedArticle(null)}
+          onUpdated={(updated) => {
+            setArticles((prev) => prev.map((a) => a.id === updated.id ? updated : a))
+            setSelectedArticle(updated)
+          }}
+          onDeleted={(id) => {
+            setArticles((prev) => prev.filter((a) => a.id !== id))
+            setSelectedArticle(null)
+          }}
+        />
+      )}
+
+      {showAdd && (
+        <AddArticleModal
+          onClose={() => setShowAdd(false)}
+          onSaved={() => { setShowAdd(false); fetchArticles() }}
+          existingCategories={categories}
+        />
+      )}
     </div>
-  );
+  )
+}
+
+export default function LibraryPage() {
+  return (
+    <Suspense>
+      <LibraryContent />
+    </Suspense>
+  )
 }
