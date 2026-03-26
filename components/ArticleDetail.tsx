@@ -90,12 +90,9 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, 
   ]
 
   return (
-    <div className="fixed inset-0 z-50 flex">
-      {/* Backdrop */}
-      <div className="flex-1 bg-black/40" onClick={onClose} />
-
-      {/* Drawer */}
-      <div className="w-full max-w-lg bg-white h-full overflow-y-auto shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-black/40" onClick={onClose}>
+      {/* Modal */}
+      <div className="w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-y-auto flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b">
           <a
