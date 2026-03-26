@@ -59,34 +59,18 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, 
     label: string
     name: FieldName
     type?: string
-    list?: string
-    datalist?: React.ReactNode
+    options?: string[]
   }[] = [
     { label: 'Title', name: 'title' },
     { label: 'Source', name: 'source' },
     { label: 'Published date', name: 'published_date', type: 'date' },
-    {
-      label: 'Category',
-      name: 'category',
-      list: 'detail-categories-list',
-      datalist: (
-        <datalist id="detail-categories-list">
-          {existingCategories.map((c) => <option key={c} value={c} />)}
-        </datalist>
-      ),
-    },
+    { label: 'Category', name: 'category', options: existingCategories },
     {
       label: 'Subcategory',
       name: 'subcategory',
-      list: 'detail-subcategories-list',
-      datalist: (
-        <datalist id="detail-subcategories-list">
-          {(fields.category && existingSubcategories[fields.category]
-            ? existingSubcategories[fields.category]
-            : Object.values(existingSubcategories).flat().filter((v, i, a) => a.indexOf(v) === i)
-          ).map((s) => <option key={s} value={s} />)}
-        </datalist>
-      ),
+      options: fields.category && existingSubcategories[fields.category]
+        ? existingSubcategories[fields.category]
+        : Object.values(existingSubcategories).flat().filter((v, i, a) => a.indexOf(v) === i),
     },
   ]
 
@@ -110,22 +94,38 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, 
         <div className="flex-1 px-4 sm:px-6 py-5 space-y-5">
           {/* Metadata — read by default, click a field to edit it */}
           <div className="divide-y divide-gray-100 dark:divide-stone-700">
-            {fieldConfig.map(({ label, name, type = 'text', list, datalist }) => (
+            {fieldConfig.map(({ label, name, type = 'text', options }) => (
               <div key={name} className="py-2.5 first:pt-0 last:pb-0">
                 <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">{label}</p>
                 {editingField === name ? (
-                  <>
+                  <div className="relative">
                     <input
                       autoFocus
                       type={type}
                       value={fields[name]}
                       onChange={(e) => setFields((f) => ({ ...f, [name]: e.target.value }))}
-                      onBlur={() => setTimeout(() => setEditingField(null), 200)}
-                      list={list}
+                      onBlur={() => setTimeout(() => setEditingField(null), 150)}
                       className="w-full text-sm border border-gray-200 dark:border-stone-600 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-stone-400 dark:bg-stone-800 dark:text-stone-100"
                     />
-                    {datalist}
-                  </>
+                    {options && options.length > 0 && (
+                      <div className="absolute z-10 mt-1 w-full bg-white dark:bg-stone-800 border border-gray-200 dark:border-stone-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        {options.map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault()
+                              setFields((f) => ({ ...f, [name]: opt }))
+                              setEditingField(null)
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-stone-900 dark:text-stone-100 hover:bg-stone-50 dark:hover:bg-stone-700"
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <button
                     onClick={() => setEditingField(name)}
