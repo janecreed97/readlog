@@ -47,6 +47,7 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, 
         position,
       })),
     })
+    onClose()
   }
 
   async function handleDelete() {

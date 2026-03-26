@@ -8,6 +8,7 @@ import ArticleCard from '@/components/ArticleCard'
 import ArticleDetail from '@/components/ArticleDetail'
 import CategoryFilter from '@/components/CategoryFilter'
 import AddArticleModal from '@/components/AddArticleModal'
+import HelpModal from '@/components/HelpModal'
 import Logo from '@/components/Logo'
 
 function LibraryContent() {
@@ -17,6 +18,7 @@ function LibraryContent() {
   const [loading, setLoading] = useState(true)
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
   const [showAdd, setShowAdd] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
   const [search, setSearch] = useState('')
 
   const activeCategory = params.get('category') ?? ''
@@ -83,6 +85,9 @@ function LibraryContent() {
               >
                 <span className="sm:hidden">+</span>
                 <span className="hidden sm:inline">+ Add article</span>
+              </button>
+              <button onClick={() => setShowHelp(true)} className="hidden sm:flex items-center justify-center w-6 h-6 rounded-full border border-gray-300 text-xs text-gray-400 hover:border-gray-500 hover:text-gray-600" aria-label="Help">
+                ?
               </button>
               <button onClick={handleSignOut} className="hidden sm:block text-sm text-gray-400 hover:text-gray-700">
                 Sign out
@@ -177,6 +182,7 @@ function LibraryContent() {
           existingSubcategories={subcategories}
         />
       )}
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
     </div>
   )
 }

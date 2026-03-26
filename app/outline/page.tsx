@@ -7,6 +7,7 @@ import type { Article } from '@/lib/types'
 import CategoryFilter from '@/components/CategoryFilter'
 import OutlineView from '@/components/OutlineView'
 import AddArticleModal from '@/components/AddArticleModal'
+import HelpModal from '@/components/HelpModal'
 import Logo from '@/components/Logo'
 
 function OutlineContent() {
@@ -15,6 +16,7 @@ function OutlineContent() {
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
 
   const activeCategory = params.get('category') ?? ''
   const activeSub = params.get('sub') ?? ''
@@ -65,6 +67,9 @@ function OutlineContent() {
               >
                 <span className="sm:hidden">+</span>
                 <span className="hidden sm:inline">+ Add article</span>
+              </button>
+              <button onClick={() => setShowHelp(true)} className="hidden sm:flex items-center justify-center w-6 h-6 rounded-full border border-gray-300 text-xs text-gray-400 hover:border-gray-500 hover:text-gray-600" aria-label="Help">
+                ?
               </button>
               <button onClick={handleSignOut} className="hidden sm:block text-sm text-gray-400 hover:text-gray-700">
                 Sign out
@@ -117,6 +122,7 @@ function OutlineContent() {
           existingSubcategories={subcategories}
         />
       )}
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
     </div>
   )
 }
