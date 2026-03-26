@@ -13,6 +13,8 @@ interface Props {
   existingSubcategories: Record<string, string[]>
 }
 
+type FieldName = 'title' | 'source' | 'published_date' | 'category' | 'subcategory'
+
 export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, existingCategories, existingSubcategories }: Props) {
   const [fields, setFields] = useState({
     title: article.title,
@@ -22,6 +24,7 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, 
     subcategory: article.subcategory,
   })
   const [bullets, setBullets] = useState(article.bullets?.map((b) => b.content) ?? [])
+  const [editingField, setEditingField] = useState<FieldName | null>(null)
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -51,13 +54,40 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, 
     onDeleted(article.id)
   }
 
-  function field(name: keyof typeof fields) {
-    return {
-      value: fields[name],
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setFields((f) => ({ ...f, [name]: e.target.value })),
-    }
-  }
+  const fieldConfig: {
+    label: string
+    name: FieldName
+    type?: string
+    list?: string
+    datalist?: React.ReactNode
+  }[] = [
+    { label: 'Title', name: 'title' },
+    { label: 'Source', name: 'source' },
+    { label: 'Published date', name: 'published_date', type: 'date' },
+    {
+      label: 'Category',
+      name: 'category',
+      list: 'detail-categories-list',
+      datalist: (
+        <datalist id="detail-categories-list">
+          {existingCategories.map((c) => <option key={c} value={c} />)}
+        </datalist>
+      ),
+    },
+    {
+      label: 'Subcategory',
+      name: 'subcategory',
+      list: 'detail-subcategories-list',
+      datalist: (
+        <datalist id="detail-subcategories-list">
+          {(fields.category && existingSubcategories[fields.category]
+            ? existingSubcategories[fields.category]
+            : Object.values(existingSubcategories).flat().filter((v, i, a) => a.indexOf(v) === i)
+          ).map((s) => <option key={s} value={s} />)}
+        </datalist>
+      ),
+    },
+  ]
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -80,54 +110,44 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, 
         </div>
 
         <div className="flex-1 px-4 sm:px-6 py-5 space-y-5">
-          {/* Metadata fields */}
-          <div className="space-y-3">
-            {[
-              { label: 'Title', name: 'title' as const },
-              { label: 'Source', name: 'source' as const },
-              { label: 'Published date', name: 'published_date' as const },
-            ].map(({ label, name }) => (
-              <div key={name}>
-                <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
-                <input
-                  type={name === 'published_date' ? 'date' : 'text'}
-                  {...field(name)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
-                />
+          {/* Metadata — read by default, click a field to edit it */}
+          <div className="divide-y divide-gray-100">
+            {fieldConfig.map(({ label, name, type = 'text', list, datalist }) => (
+              <div key={name} className="py-2.5 first:pt-0 last:pb-0">
+                <p className="text-xs font-medium text-gray-400 mb-0.5">{label}</p>
+                {editingField === name ? (
+                  <>
+                    <input
+                      autoFocus
+                      type={type}
+                      value={fields[name]}
+                      onChange={(e) => setFields((f) => ({ ...f, [name]: e.target.value }))}
+                      onBlur={() => setEditingField(null)}
+                      list={list}
+                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                    />
+                    {datalist}
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setEditingField(name)}
+                    className="w-full text-left group flex items-center justify-between gap-2 rounded px-1 py-0.5 -ml-1 hover:bg-stone-50"
+                  >
+                    <span className={`text-sm ${fields[name] ? 'text-stone-900' : 'text-gray-400 italic'}`}>
+                      {fields[name] || '—'}
+                    </span>
+                    <span className="text-xs text-gray-300 opacity-0 group-hover:opacity-100 shrink-0">
+                      Edit
+                    </span>
+                  </button>
+                )}
               </div>
             ))}
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
-              <input
-                type="text"
-                {...field('category')}
-                list="detail-categories-list"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
-              />
-              <datalist id="detail-categories-list">
-                {existingCategories.map((c) => <option key={c} value={c} />)}
-              </datalist>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Subcategory</label>
-              <input
-                type="text"
-                {...field('subcategory')}
-                list="detail-subcategories-list"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
-              />
-              <datalist id="detail-subcategories-list">
-                {(fields.category && existingSubcategories[fields.category]
-                  ? existingSubcategories[fields.category]
-                  : Object.values(existingSubcategories).flat().filter((v, i, a) => a.indexOf(v) === i)
-                ).map((s) => <option key={s} value={s} />)}
-              </datalist>
-            </div>
           </div>
 
           {/* Bullets */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-2">Key takeaways</label>
+            <p className="text-xs font-medium text-gray-400 mb-2">Key takeaways</p>
             <BulletList bullets={bullets} onChange={setBullets} />
           </div>
         </div>

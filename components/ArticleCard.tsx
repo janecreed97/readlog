@@ -24,7 +24,7 @@ export default function ArticleCard({ article, onClick }: Props) {
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
-      className="group cursor-pointer text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-400 hover:shadow-md transition-all space-y-3 w-full"
+      className="cursor-pointer text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-gray-400 hover:shadow-sm transition-all space-y-3 w-full"
     >
       {/* Header */}
       <div className="flex items-center gap-2">
@@ -73,24 +73,9 @@ export default function ArticleCard({ article, onClick }: Props) {
         )}
       </div>
 
-      {/* Teaser bullet — visible normally, hidden on desktop hover */}
+      {/* Teaser bullet */}
       {firstBullet && (
-        <p className="text-xs text-gray-500 italic line-clamp-1 md:group-hover:hidden">
-          {firstBullet}
-        </p>
-      )}
-
-      {/* All bullets — only shown on desktop hover */}
-      {article.bullets && article.bullets.length > 0 && (
-        <div className="hidden md:group-hover:block space-y-1.5 border-t border-gray-100 pt-3">
-          {article.bullets.map((b) => (
-            <p key={b.id} className="text-xs text-gray-600 leading-relaxed flex gap-1.5">
-              <span className="text-gray-300 shrink-0">•</span>
-              <span>{b.content}</span>
-            </p>
-          ))}
-          <p className="text-xs text-gray-400 pt-1 italic">Click to edit</p>
-        </div>
+        <p className="text-xs text-gray-500 italic line-clamp-1">{firstBullet}</p>
       )}
     </div>
   )
