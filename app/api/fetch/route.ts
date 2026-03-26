@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Readability } from '@mozilla/readability'
-import { JSDOM } from 'jsdom'
+import { parseHTML } from 'linkedom'
 import { createClient } from '@/lib/supabase/server'
 import type { ArticlePreview } from '@/lib/types'
 
@@ -91,8 +91,8 @@ export async function POST(request: Request) {
       signal: AbortSignal.timeout(10000),
     })
     articleHtml = await res.text()
-    const dom = new JSDOM(articleHtml, { url })
-    const reader = new Readability(dom.window.document)
+    const { document } = parseHTML(articleHtml)
+    const reader = new Readability(document as unknown as Document)
     const parsed = reader.parse()
     articleText = parsed?.textContent ?? ''
     isPaywalled = detectPaywall(articleText, articleHtml)

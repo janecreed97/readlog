@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['jsdom', '@mozilla/readability'],
+  serverExternalPackages: ['linkedom', '@mozilla/readability'],
 };
 
 export default nextConfig;
