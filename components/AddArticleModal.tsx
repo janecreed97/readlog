@@ -8,11 +8,12 @@ interface Props {
   onClose: () => void
   onSaved: () => void
   existingCategories: string[]
+  existingSubcategories: Record<string, string[]>
 }
 
 type Step = 'url' | 'loading' | 'preview' | 'paywall'
 
-export default function AddArticleModal({ onClose, onSaved, existingCategories }: Props) {
+export default function AddArticleModal({ onClose, onSaved, existingCategories, existingSubcategories }: Props) {
   const [step, setStep] = useState<Step>('url')
   const [url, setUrl] = useState('')
   const [preview, setPreview] = useState<ArticlePreview | null>(null)
@@ -214,8 +215,6 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories }
               {[
                 { label: 'Title', key: 'title' as const, type: 'text' },
                 { label: 'Source', key: 'source' as const, type: 'text' },
-                { label: 'Category', key: 'category' as const, type: 'text' },
-                { label: 'Subcategory', key: 'subcategory' as const, type: 'text' },
                 { label: 'Published date', key: 'published_date' as const, type: 'date' },
               ].map(({ label, key, type }) => (
                 <div key={key}>
@@ -224,14 +223,41 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories }
                     type={type}
                     value={(preview[key] as string) ?? ''}
                     onChange={(e) => updatePreview(key, e.target.value)}
-                    list={key === 'category' ? 'categories-list' : undefined}
                     className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
                   />
                 </div>
               ))}
-              <datalist id="categories-list">
-                {existingCategories.map((c) => <option key={c} value={c} />)}
-              </datalist>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
+                <input
+                  type="text"
+                  value={preview.category ?? ''}
+                  onChange={(e) => updatePreview('category', e.target.value)}
+                  list="add-categories-list"
+                  placeholder="e.g. Technology"
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                />
+                <datalist id="add-categories-list">
+                  {existingCategories.map((c) => <option key={c} value={c} />)}
+                </datalist>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Subcategory</label>
+                <input
+                  type="text"
+                  value={preview.subcategory ?? ''}
+                  onChange={(e) => updatePreview('subcategory', e.target.value)}
+                  list="add-subcategories-list"
+                  placeholder="e.g. AI"
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                />
+                <datalist id="add-subcategories-list">
+                  {(preview.category && existingSubcategories[preview.category]
+                    ? existingSubcategories[preview.category]
+                    : Object.values(existingSubcategories).flat().filter((v, i, a) => a.indexOf(v) === i)
+                  ).map((s) => <option key={s} value={s} />)}
+                </datalist>
+              </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-2">Key takeaways</label>

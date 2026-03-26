@@ -160,6 +160,8 @@ function LibraryContent() {
             setArticles((prev) => prev.filter((a) => a.id !== id))
             setSelectedArticle(null)
           }}
+          existingCategories={categories}
+          existingSubcategories={subcategories}
         />
       )}
 
@@ -168,6 +170,7 @@ function LibraryContent() {
           onClose={() => setShowAdd(false)}
           onSaved={() => { setShowAdd(false); fetchArticles() }}
           existingCategories={categories}
+          existingSubcategories={subcategories}
         />
       )}
     </div>

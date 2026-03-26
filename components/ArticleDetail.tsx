@@ -9,9 +9,11 @@ interface Props {
   onClose: () => void
   onUpdated: (article: Article) => void
   onDeleted: (id: string) => void
+  existingCategories: string[]
+  existingSubcategories: Record<string, string[]>
 }
 
-export default function ArticleDetail({ article, onClose, onUpdated, onDeleted }: Props) {
+export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, existingCategories, existingSubcategories }: Props) {
   const [fields, setFields] = useState({
     title: article.title,
     source: article.source,
@@ -83,8 +85,6 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted }
             {[
               { label: 'Title', name: 'title' as const },
               { label: 'Source', name: 'source' as const },
-              { label: 'Category', name: 'category' as const },
-              { label: 'Subcategory', name: 'subcategory' as const },
               { label: 'Published date', name: 'published_date' as const },
             ].map(({ label, name }) => (
               <div key={name}>
@@ -96,6 +96,33 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted }
                 />
               </div>
             ))}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
+              <input
+                type="text"
+                {...field('category')}
+                list="detail-categories-list"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
+              />
+              <datalist id="detail-categories-list">
+                {existingCategories.map((c) => <option key={c} value={c} />)}
+              </datalist>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Subcategory</label>
+              <input
+                type="text"
+                {...field('subcategory')}
+                list="detail-subcategories-list"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
+              />
+              <datalist id="detail-subcategories-list">
+                {(fields.category && existingSubcategories[fields.category]
+                  ? existingSubcategories[fields.category]
+                  : Object.values(existingSubcategories).flat().filter((v, i, a) => a.indexOf(v) === i)
+                ).map((s) => <option key={s} value={s} />)}
+              </datalist>
+            </div>
           </div>
 
           {/* Bullets */}
