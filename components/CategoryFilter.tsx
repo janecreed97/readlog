@@ -28,7 +28,7 @@ export default function CategoryFilter({ categories, subcategories }: Props) {
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         <button
-          onClick={() => { setParam('category', ''); setParam('sub', '') }}
+          onClick={() => router.push('?')}
           className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
             !activeCategory
               ? 'bg-gray-900 text-white'
