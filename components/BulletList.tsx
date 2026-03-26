@@ -65,7 +65,7 @@ export default function BulletList({ bullets, onChange, maxBullets = 5 }: Props)
                           value={bullet}
                           onChange={(e) => updateBullet(index, e.target.value)}
                           onBlur={() => setEditingIndex(null)}
-                          className="flex-1 text-sm border border-blue-400 rounded px-2 py-1 resize-none outline-none focus:ring-1 focus:ring-blue-400 min-h-[2.5rem]"
+                          className="flex-1 text-sm border border-stone-400 rounded px-2 py-1 resize-none outline-none focus:ring-1 focus:ring-stone-400 min-h-[2.5rem]"
                           rows={2}
                         />
                       ) : (
@@ -97,7 +97,7 @@ export default function BulletList({ bullets, onChange, maxBullets = 5 }: Props)
       {bullets.length < maxBullets && (
         <button
           onClick={addBullet}
-          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          className="text-sm text-amber-700 hover:text-amber-900 font-medium"
         >
           + Add bullet
         </button>

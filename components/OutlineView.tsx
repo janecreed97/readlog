@@ -19,7 +19,7 @@ function formatDate(dateStr: string) {
 
 function Badge({ label, color }: { label: string; color: 'gray' | 'blue' }) {
   const cls = color === 'blue'
-    ? 'bg-blue-50 text-blue-700'
+    ? 'bg-amber-50 text-amber-800'
     : 'bg-gray-100 text-gray-600'
   return <span className={`text-xs px-2 py-0.5 rounded-full ${cls}`}>{label}</span>
 }
@@ -32,7 +32,7 @@ function ArticleEntry({ article }: { article: Article }) {
           href={article.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-gray-900 hover:text-blue-700 hover:underline text-sm"
+          className="font-medium text-stone-900 hover:text-amber-800 hover:underline text-sm"
         >
           {article.title}
         </a>
@@ -66,7 +66,7 @@ function CollapsibleSection({ title, children, defaultOpen = true }: {
     <div className="border border-gray-200 rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+        className="w-full flex items-center justify-between px-5 py-3 bg-stone-50 hover:bg-gray-100 transition-colors text-left"
       >
         <span className="font-semibold text-gray-800 text-sm">{title}</span>
         <span className="text-gray-400 text-xs">{open ? '▲' : '▼'}</span>
@@ -141,7 +141,7 @@ function TopicView({ articles, activeCategory }: { articles: Article[]; activeCa
               <button
                 onClick={() => synthesize(cat)}
                 disabled={loading[cat]}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
+                className="text-xs text-amber-700 hover:text-amber-900 font-medium disabled:opacity-50"
               >
                 {loading[cat] ? 'Generating synthesis…' : '✦ Generate AI synthesis'}
               </button>
@@ -183,7 +183,7 @@ export default function OutlineView({ articles, activeCategory, activeSub }: Pro
             key={m}
             onClick={() => setMode(m)}
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
-              mode === m ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
+              mode === m ? 'bg-white shadow text-stone-900' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {m === 'chronological' ? 'Chronological' : 'By Topic'}

@@ -106,7 +106,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories }
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="font-semibold text-gray-900">
+          <h2 className="font-semibold text-stone-900">
             {step === 'preview' ? 'Review & save' : 'Add article'}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700">✕</button>
@@ -125,7 +125,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories }
                   onChange={(e) => setUrl(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleFetch()}
                   placeholder="https://..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
@@ -167,7 +167,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories }
                   onChange={(e) => setPasteText(e.target.value)}
                   rows={6}
                   placeholder="Paste the article body here…"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
                 />
                 <button
                   onClick={handlePasteSubmit}
@@ -225,7 +225,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories }
                     value={(preview[key] as string) ?? ''}
                     onChange={(e) => updatePreview(key, e.target.value)}
                     list={key === 'category' ? 'categories-list' : undefined}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
                   />
                 </div>
               ))}
@@ -251,7 +251,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories }
           <div className="px-6 py-4 border-t flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 border border-gray-300 text-gray-700 font-medium py-2 rounded-lg hover:bg-gray-50 text-sm"
+              className="flex-1 border border-gray-300 text-gray-700 font-medium py-2 rounded-lg hover:bg-stone-50 text-sm"
             >
               Cancel
             </button>

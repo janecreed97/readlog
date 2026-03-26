@@ -40,7 +40,7 @@ export default function ArticleCard({ article, onClick }: Props) {
       </div>
 
       {/* Title */}
-      <p className="font-semibold text-gray-900 text-sm leading-snug line-clamp-2">
+      <p className="font-semibold text-stone-900 text-sm leading-snug line-clamp-2">
         {article.title}
       </p>
 
@@ -58,7 +58,7 @@ export default function ArticleCard({ article, onClick }: Props) {
           </span>
         )}
         {article.subcategory && (
-          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+          <span className="text-xs bg-amber-50 text-amber-800 px-2 py-0.5 rounded-full">
             {article.subcategory}
           </span>
         )}

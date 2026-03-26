@@ -65,9 +65,9 @@ function LibraryContent() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <span className="font-bold text-gray-900">ReadLog</span>
+            <span className="font-bold text-stone-900">Alexandria</span>
             <nav className="flex gap-4 text-sm">
-              <a href="/" className="text-gray-900 font-medium">Library</a>
+              <a href="/" className="text-stone-900 font-medium">Library</a>
               <a href="/outline" className="text-gray-500 hover:text-gray-800">Outline</a>
             </nav>
           </div>
@@ -95,7 +95,7 @@ function LibraryContent() {
             placeholder="Search titles and bullets…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-stone-400"
           />
         </div>
 
@@ -122,7 +122,7 @@ function LibraryContent() {
               {articles.length === 0 ? 'No articles yet.' : 'No articles match your filters.'}
             </p>
             {articles.length === 0 && (
-              <button onClick={() => setShowAdd(true)} className="text-sm text-blue-600 hover:underline">
+              <button onClick={() => setShowAdd(true)} className="text-sm text-amber-700 hover:underline">
                 Add your first article
               </button>
             )}

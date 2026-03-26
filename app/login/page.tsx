@@ -6,10 +6,10 @@ export default function LoginPage({
   searchParams: { error?: string }
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-stone-50">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 w-full max-w-sm text-center space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">ReadLog</h1>
+          <h1 className="text-2xl font-bold text-stone-900">Alexandria</h1>
           <p className="text-sm text-gray-500 mt-1">Your personal article knowledge base</p>
         </div>
 

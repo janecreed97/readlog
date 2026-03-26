@@ -70,7 +70,7 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted }
             href={article.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-blue-600 hover:underline truncate max-w-[80%]"
+            className="text-xs text-amber-700 hover:underline truncate max-w-[80%]"
           >
             {article.url}
           </a>
@@ -92,7 +92,7 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted }
                 <input
                   type={name === 'published_date' ? 'date' : 'text'}
                   {...field(name)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-stone-400"
                 />
               </div>
             ))}

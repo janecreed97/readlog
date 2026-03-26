@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Pediment -->
+  <polygon points="16,2 4,9 28,9" fill="#2C2926"/>
+  <!-- Architrave -->
+  <rect x="4" y="9" width="24" height="2" fill="#2C2926"/>
+  <!-- Columns (5) -->
+  <rect x="4"    y="11" width="2.5" height="10" fill="#2C2926"/>
+  <rect x="9.4"  y="11" width="2.5" height="10" fill="#2C2926"/>
+  <rect x="14.75" y="11" width="2.5" height="10" fill="#2C2926"/>
+  <rect x="20.1" y="11" width="2.5" height="10" fill="#2C2926"/>
+  <rect x="25.5" y="11" width="2.5" height="10" fill="#2C2926"/>
+  <!-- Stylobate (3 steps) -->
+  <rect x="3"   y="21" width="26" height="2"   fill="#2C2926"/>
+  <rect x="1.5" y="23" width="29" height="2"   fill="#2C2926"/>
+  <rect x="0"   y="25" width="32" height="2.5" fill="#2C2926"/>
+</svg>

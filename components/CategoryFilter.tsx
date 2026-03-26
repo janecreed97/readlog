@@ -59,8 +59,8 @@ export default function CategoryFilter({ categories, subcategories }: Props) {
               onClick={() => setParam('sub', activeSub === sub ? '' : sub)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                 activeSub === sub
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                  ? 'bg-stone-700 text-white'
+                  : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
               }`}
             >
               {sub}
