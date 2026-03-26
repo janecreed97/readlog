@@ -65,7 +65,7 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted }
       {/* Drawer */}
       <div className="w-full max-w-lg bg-white h-full overflow-y-auto shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b">
           <a
             href={article.url}
             target="_blank"
@@ -77,7 +77,7 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted }
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 ml-2">✕</button>
         </div>
 
-        <div className="flex-1 px-6 py-5 space-y-5">
+        <div className="flex-1 px-4 sm:px-6 py-5 space-y-5">
           {/* Metadata fields */}
           <div className="space-y-3">
             {[
@@ -106,7 +106,7 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted }
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t flex items-center justify-between gap-3">
+        <div className="px-4 sm:px-6 py-4 border-t flex items-center justify-between gap-3">
           {confirmDelete ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-red-600">Delete this article?</span>

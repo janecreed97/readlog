@@ -27,7 +27,7 @@ function Badge({ label, color }: { label: string; color: 'gray' | 'blue' }) {
 function ArticleEntry({ article }: { article: Article }) {
   return (
     <div className="py-3 border-l-2 border-gray-200 pl-4 space-y-1.5">
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2">
         <a
           href={article.url}
           target="_blank"
@@ -36,7 +36,7 @@ function ArticleEntry({ article }: { article: Article }) {
         >
           {article.title}
         </a>
-        <div className="flex gap-1 shrink-0">
+        <div className="flex gap-1 flex-wrap shrink-0">
           {article.category && <Badge label={article.category} color="gray" />}
           {article.subcategory && <Badge label={article.subcategory} color="blue" />}
         </div>

@@ -105,14 +105,14 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories }
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b">
           <h2 className="font-semibold text-stone-900">
             {step === 'preview' ? 'Review & save' : 'Add article'}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700">✕</button>
         </div>
 
-        <div className="px-6 py-5">
+        <div className="px-4 sm:px-6 py-5">
           {/* URL input */}
           {step === 'url' && (
             <div className="space-y-4">
@@ -248,7 +248,7 @@ export default function AddArticleModal({ onClose, onSaved, existingCategories }
 
         {/* Footer */}
         {step === 'preview' && preview && (
-          <div className="px-6 py-4 border-t flex gap-3">
+          <div className="px-4 sm:px-6 py-4 border-t flex gap-3">
             <button
               onClick={onClose}
               className="flex-1 border border-gray-300 text-gray-700 font-medium py-2 rounded-lg hover:bg-stone-50 text-sm"

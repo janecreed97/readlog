@@ -63,24 +63,32 @@ function LibraryContent() {
   return (
     <div className="min-h-screen">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <span className="font-bold text-stone-900">ALEXANDRIA</span>
-            <nav className="flex gap-4 text-sm">
-              <a href="/" className="text-stone-900 font-medium">Library</a>
-              <a href="/outline" className="text-gray-500 hover:text-gray-800">Outline</a>
-            </nav>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="h-12 sm:h-14 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 sm:gap-6">
+              <span className="font-bold text-stone-900">ALEXANDRIA</span>
+              <nav className="hidden sm:flex gap-4 text-sm">
+                <a href="/" className="text-stone-900 font-medium">Library</a>
+                <a href="/outline" className="text-gray-500 hover:text-gray-800">Outline</a>
+              </nav>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={() => setShowAdd(true)}
+                className="bg-gray-900 text-white text-sm font-medium px-3 sm:px-4 py-1.5 rounded-lg hover:bg-gray-700"
+              >
+                <span className="sm:hidden">+</span>
+                <span className="hidden sm:inline">+ Add article</span>
+              </button>
+              <button onClick={handleSignOut} className="hidden sm:block text-sm text-gray-400 hover:text-gray-700">
+                Sign out
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowAdd(true)}
-              className="bg-gray-900 text-white text-sm font-medium px-4 py-1.5 rounded-lg hover:bg-gray-700"
-            >
-              + Add article
-            </button>
-            <button onClick={handleSignOut} className="text-sm text-gray-400 hover:text-gray-700">
-              Sign out
-            </button>
+          <div className="sm:hidden flex border-t border-gray-100">
+            <a href="/" className="flex-1 text-center text-xs font-medium py-2 text-stone-900 border-b-2 border-stone-900">Library</a>
+            <a href="/outline" className="flex-1 text-center text-xs font-medium py-2 text-gray-400">Outline</a>
+            <button onClick={handleSignOut} className="px-4 text-xs text-gray-400 hover:text-gray-600 border-l border-gray-100">Sign out</button>
           </div>
         </div>
       </header>
