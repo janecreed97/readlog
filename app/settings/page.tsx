@@ -49,7 +49,7 @@ if(BLOCKED.some(function(d){return host===d||host.endsWith('.'+d);})){
 var title=document.title||window.location.href;
 var u=window.location.href;
 var wordCount=document.body.innerText.trim().split(/\s+/).length;
-if(!confirm('Save to Alexandria?\n\n\u201c'+title+'\u201d\n'+u+'\n\n~'+wordCount.toLocaleString()+' words will be sent for summarisation.\n\nOnly click OK on articles you intend to save.')){return;}
+if(!confirm('Save this article to Alexandria?\n\n\u201c'+title+'\u201d')){return;}
 var t=document.body.innerText;
 fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'application/json','X-Bookmarklet-Key':'${bookmarkletKey}'},body:JSON.stringify({url:u,text:t})}).then(function(r){return r.json()}).then(function(d){if(d.error){alert('Alexandria: '+d.error);return;}var w=window.open('${origin}/add?token='+d.token,'alexandria','width=520,height=700,resizable=yes');if(!w){alert('Alexandria: popup was blocked. Please allow popups for this site in your browser settings, then try again.');}}).catch(function(){alert('Alexandria: could not connect.');});
 })();`.replace(/\n/g,'')

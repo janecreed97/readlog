@@ -79,8 +79,14 @@ ${truncated}`
     if (!res.ok) throw new Error(`Gemini API error ${res.status}: ${await res.text()}`)
     const data = await res.json()
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
-    const cleaned = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
-    payload = { ...JSON.parse(cleaned), url, is_paywalled: true }
+    // Strip markdown fences, then extract the first complete JSON object
+    const stripped = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
+    // Find outermost { } to handle any trailing text after the JSON
+    const start = stripped.indexOf('{')
+    const end = stripped.lastIndexOf('}')
+    if (start === -1 || end === -1) throw new Error('No JSON object found in Gemini response')
+    const jsonStr = stripped.slice(start, end + 1)
+    payload = { ...JSON.parse(jsonStr), url, is_paywalled: true }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     return NextResponse.json(
