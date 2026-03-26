@@ -47,7 +47,7 @@ function OutlineContent() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <span className="font-bold text-stone-900">Alexandria</span>
+            <span className="font-bold text-stone-900">ALEXANDRIA</span>
             <nav className="flex gap-4 text-sm">
               <a href="/" className="text-gray-500 hover:text-gray-800">Library</a>
               <a href="/outline" className="text-stone-900 font-medium">Outline</a>
