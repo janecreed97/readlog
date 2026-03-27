@@ -16,16 +16,23 @@ export default function ProfileSetupPage() {
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.push('/login'); return }
-      // Check if profile already exists
       fetch('/api/profile').then(r => r.json()).then(profile => {
-        if (profile?.id) { router.push('/'); return }
-        const name = user.user_metadata?.full_name ?? ''
-        setDisplayName(name)
-        setUsername(toUsername(name))
+        if (profile?.id) {
+          // Existing profile — populate fields for editing
+          setIsEditing(true)
+          setDisplayName(profile.display_name ?? '')
+          setUsername(profile.username ?? '')
+        } else {
+          // New profile — pre-fill from Google name
+          const name = user.user_metadata?.full_name ?? ''
+          setDisplayName(name)
+          setUsername(toUsername(name))
+        }
       })
     })
   }, [router])
@@ -58,7 +65,7 @@ export default function ProfileSetupPage() {
     })
     const data = await res.json()
     if (!res.ok) { setError(data.error ?? 'Something went wrong'); setSaving(false); return }
-    router.push('/')
+    router.push(isEditing ? '/settings' : '/')
   }
 
   return (
@@ -69,8 +76,14 @@ export default function ProfileSetupPage() {
           <span className="font-bold text-xl text-stone-900 dark:text-stone-100 tracking-wider">ALEXANDRIA</span>
         </div>
         <div className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-8">
-          <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-1">Set up your profile</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Choose a display name and username to start sharing articles with friends.</p>
+          <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100 mb-1">
+            {isEditing ? 'Edit profile' : 'Set up your profile'}
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            {isEditing
+              ? 'Update your display name or username.'
+              : 'Choose a display name and username to start sharing articles with friends.'}
+          </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Display name</label>
@@ -106,13 +119,24 @@ export default function ProfileSetupPage() {
               </p>
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
-            <button
-              type="submit"
-              disabled={saving || usernameStatus !== 'available' || !displayName.trim()}
-              className="w-full bg-gray-900 text-white font-medium py-2.5 rounded-lg hover:bg-gray-700 disabled:opacity-40 text-sm mt-2"
-            >
-              {saving ? 'Setting up…' : 'Continue to Alexandria'}
-            </button>
+            <div className="flex gap-3 pt-2">
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={() => router.push('/settings')}
+                  className="flex-1 border border-gray-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 font-medium py-2.5 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800 text-sm"
+                >
+                  Cancel
+                </button>
+              )}
+              <button
+                type="submit"
+                disabled={saving || usernameStatus !== 'available' || !displayName.trim()}
+                className="flex-1 bg-gray-900 text-white font-medium py-2.5 rounded-lg hover:bg-gray-700 disabled:opacity-40 text-sm"
+              >
+                {saving ? 'Saving…' : isEditing ? 'Save changes' : 'Continue to Alexandria'}
+              </button>
+            </div>
           </form>
         </div>
       </div>
