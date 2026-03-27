@@ -243,6 +243,150 @@ interface InteractionState {
   comments: ShareComment[]
 }
 
+// ── Shared article modal ──────────────────────────────────────────────────────
+function SharedArticleModal({
+  msg,
+  interactions,
+  myUserId,
+  isSaved,
+  onClose,
+  onSave,
+  onDismiss,
+  onToggleReaction,
+  onAddComment,
+  onDeleteComment,
+}: {
+  msg: ConvMessage
+  interactions: InteractionState
+  myUserId: string
+  isSaved: boolean
+  onClose: () => void
+  onSave: (id: string) => void
+  onDismiss: (id: string) => void
+  onToggleReaction: (shareId: string, emoji: string) => void
+  onAddComment: (shareId: string, content: string) => Promise<void>
+  onDeleteComment: (shareId: string, commentId: string) => void
+}) {
+  const isSent = msg.direction === 'sent'
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-black/40"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-2xl max-h-[90vh] bg-white dark:bg-stone-900 rounded-2xl shadow-2xl overflow-y-auto flex flex-col"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 py-4 border-b dark:border-stone-700 gap-3">
+          <div className="space-y-0.5 min-w-0">
+            <div className="text-xs text-gray-400 dark:text-gray-500">
+              {msg.payload.source}{msg.payload.published_date ? ` · ${msg.payload.published_date}` : ''}
+            </div>
+            {msg.direction === 'received' && msg.otherPerson && (
+              <div className="text-xs text-gray-400 dark:text-gray-500">
+                Shared by{' '}
+                <Link href={`/profile/${msg.otherPerson.username}`} onClick={onClose} className="hover:underline text-stone-600 dark:text-stone-400">
+                  {msg.otherPerson.display_name}
+                </Link>
+              </div>
+            )}
+          </div>
+          <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 shrink-0">✕</button>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 px-6 py-5 space-y-4">
+          {/* Title */}
+          <a
+            href={msg.payload.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-lg font-bold text-stone-900 dark:text-stone-100 leading-snug hover:underline hover:text-amber-800 dark:hover:text-amber-400 block"
+          >
+            {msg.payload.title} ↗
+          </a>
+
+          {/* Category tags */}
+          <div className="flex gap-2 flex-wrap">
+            {msg.payload.category && (
+              <span className="text-xs bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded-full">
+                {msg.payload.category}
+              </span>
+            )}
+            {msg.payload.subcategory && (
+              <span className="text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400 px-2.5 py-1 rounded-full">
+                {msg.payload.subcategory}
+              </span>
+            )}
+          </div>
+
+          {/* All bullets */}
+          {msg.payload.bullets?.length > 0 && (
+            <ul className="space-y-2.5">
+              {msg.payload.bullets.map((b, i) => (
+                <li key={i} className="flex gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+                  <span className="text-gray-300 dark:text-gray-500 shrink-0 mt-0.5">•</span>
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Note */}
+          {msg.note && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 italic bg-stone-50 dark:bg-stone-800 rounded-xl px-4 py-3">
+              &ldquo;{msg.note}&rdquo;
+            </p>
+          )}
+
+          {/* Reactions + comments */}
+          <div className="border-t dark:border-stone-700 pt-4 space-y-4">
+            <ReactionBar
+              shareId={msg.id}
+              reactions={interactions.reactions}
+              myUserId={myUserId}
+              isSent={false}
+              onToggle={onToggleReaction}
+            />
+            <CommentThread
+              shareId={msg.id}
+              comments={interactions.comments}
+              myUserId={myUserId}
+              isSent={false}
+              onAdd={onAddComment}
+              onDelete={onDeleteComment}
+            />
+          </div>
+        </div>
+
+        {/* Footer — save/dismiss for received messages */}
+        {!isSent && (
+          <div className="px-6 py-4 border-t dark:border-stone-700 flex items-center gap-3">
+            {isSaved ? (
+              <span className="text-sm text-green-600 dark:text-green-400 font-medium">✓ Saved to Library</span>
+            ) : (
+              <button
+                onClick={() => { onSave(msg.id); onClose() }}
+                className="text-sm font-medium bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+              >
+                Save to Library
+              </button>
+            )}
+            <button
+              onClick={() => { onDismiss(msg.id); onClose() }}
+              className="text-sm text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function InboxPage() {
   const router = useRouter()
@@ -251,6 +395,7 @@ export default function InboxPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [saved, setSaved] = useState<Set<string>>(new Set())
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  const [expandedMsgId, setExpandedMsgId] = useState<string | null>(null)
   const [myUserId, setMyUserId] = useState('')
   // interactions keyed by share id
   const [interactions, setInteractions] = useState<Record<string, InteractionState>>({})
@@ -469,16 +614,20 @@ export default function InboxPage() {
             return (
               <div key={msg.id} className={`flex ${isSent ? 'justify-end' : 'justify-start'}`}>
                 <div className={`w-full max-w-[85%] space-y-2 flex flex-col ${isSent ? 'items-end' : 'items-start'}`}>
-                  {/* Article card */}
-                  <div className={`rounded-2xl border p-4 space-y-3 w-full ${
-                    isSent
-                      ? 'bg-stone-900 dark:bg-stone-700 border-stone-800 dark:border-stone-600 text-white'
-                      : 'bg-white dark:bg-stone-900 border-gray-200 dark:border-stone-700'
-                  }`}>
+                  {/* Article card — click anywhere (except the title link) to expand */}
+                  <div
+                    onClick={() => setExpandedMsgId(msg.id)}
+                    className={`rounded-2xl border p-4 space-y-3 w-full cursor-pointer transition-shadow hover:shadow-md ${
+                      isSent
+                        ? 'bg-stone-900 dark:bg-stone-700 border-stone-800 dark:border-stone-600 text-white'
+                        : 'bg-white dark:bg-stone-900 border-gray-200 dark:border-stone-700'
+                    }`}
+                  >
                     <a
                       href={msg.payload.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
                       className={`font-semibold text-sm leading-snug block hover:underline ${isSent ? 'text-white' : 'text-stone-900 dark:text-stone-100 hover:text-amber-800 dark:hover:text-amber-400'}`}
                     >
                       {msg.payload.title}
@@ -514,8 +663,11 @@ export default function InboxPage() {
                       </p>
                     )}
 
-                    {/* Reactions — live inside the card, flush to the bottom */}
-                    <div className={`flex items-center justify-between pt-2 border-t ${isSent ? 'border-stone-700 dark:border-stone-600' : 'border-gray-100 dark:border-stone-700'}`}>
+                    {/* Reactions — inside card; stop propagation so clicks don't open the modal */}
+                    <div
+                      onClick={e => e.stopPropagation()}
+                      className={`flex items-center justify-between pt-2 border-t ${isSent ? 'border-stone-700 dark:border-stone-600' : 'border-gray-100 dark:border-stone-700'}`}
+                    >
                       <ReactionBar
                         shareId={msg.id}
                         reactions={msgInteractions.reactions}
@@ -562,6 +714,26 @@ export default function InboxPage() {
           })}
         </div>
       </main>
+
+      {/* Expanded article modal */}
+      {expandedMsgId && (() => {
+        const expandedMsg = visibleMessages.find(m => m.id === expandedMsgId)
+        if (!expandedMsg) return null
+        return (
+          <SharedArticleModal
+            msg={expandedMsg}
+            interactions={interactions[expandedMsgId] ?? { reactions: [], comments: [] }}
+            myUserId={myUserId}
+            isSaved={saved.has(expandedMsgId) || expandedMsg.status === 'saved'}
+            onClose={() => setExpandedMsgId(null)}
+            onSave={handleSave}
+            onDismiss={handleDismiss}
+            onToggleReaction={toggleReaction}
+            onAddComment={addComment}
+            onDeleteComment={deleteComment}
+          />
+        )
+      })()}
     </div>
   )
 }
