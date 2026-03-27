@@ -25,6 +25,7 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, 
   })
   const [bullets, setBullets] = useState(article.bullets?.map((b) => b.content) ?? [])
   const [editingField, setEditingField] = useState<FieldName | null>(null)
+  const [isPrivate, setIsPrivate] = useState(article.is_private ?? false)
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -33,12 +34,13 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, 
     await fetch(`/api/articles/${article.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...fields, published_date: fields.published_date || null, bullets }),
+      body: JSON.stringify({ ...fields, published_date: fields.published_date || null, bullets, is_private: isPrivate }),
     })
     setSaving(false)
     onUpdated({
       ...article,
       ...fields,
+      is_private: isPrivate,
       published_date: fields.published_date || null,
       bullets: bullets.map((content, position) => ({
         id: article.bullets?.[position]?.id ?? String(position),
@@ -151,32 +153,47 @@ export default function ArticleDetail({ article, onClose, onUpdated, onDeleted, 
         </div>
 
         {/* Footer */}
-        <div className="px-4 sm:px-6 py-4 border-t dark:border-stone-700 flex items-center justify-between gap-3">
-          {confirmDelete ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-red-600">Delete this article?</span>
-              <button onClick={handleDelete} className="text-sm font-medium text-red-600 hover:text-red-800">
-                Yes, delete
-              </button>
-              <button onClick={() => setConfirmDelete(false)} className="text-sm text-gray-500 dark:text-gray-400">
-                Cancel
-              </button>
+        <div className="px-4 sm:px-6 py-4 border-t dark:border-stone-700 space-y-3">
+          {/* Privacy toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-stone-900 dark:text-stone-100">
+                {isPrivate ? '🔒 Private' : '🌐 Public'}
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                {isPrivate ? 'Only you can see this' : 'Visible on your profile'}
+              </p>
             </div>
-          ) : (
             <button
-              onClick={() => setConfirmDelete(true)}
-              className="text-sm text-gray-400 dark:text-gray-500 hover:text-red-500"
+              type="button"
+              onClick={() => setIsPrivate(p => !p)}
+              className={`relative w-10 h-6 rounded-full transition-colors focus:outline-none ${isPrivate ? 'bg-stone-300 dark:bg-stone-600' : 'bg-amber-500'}`}
+              aria-label={isPrivate ? 'Make public' : 'Make private'}
             >
-              Delete article
+              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${isPrivate ? 'left-1' : 'left-5'}`} />
             </button>
-          )}
-          <button
-            onClick={save}
-            disabled={saving}
-            className="ml-auto bg-gray-900 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50"
-          >
-            {saving ? 'Saving…' : 'Save changes'}
-          </button>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            {confirmDelete ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-red-600">Delete this article?</span>
+                <button onClick={handleDelete} className="text-sm font-medium text-red-600 hover:text-red-800">Yes, delete</button>
+                <button onClick={() => setConfirmDelete(false)} className="text-sm text-gray-500 dark:text-gray-400">Cancel</button>
+              </div>
+            ) : (
+              <button onClick={() => setConfirmDelete(true)} className="text-sm text-gray-400 dark:text-gray-500 hover:text-red-500">
+                Delete article
+              </button>
+            )}
+            <button
+              onClick={save}
+              disabled={saving}
+              className="ml-auto bg-gray-900 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save changes'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

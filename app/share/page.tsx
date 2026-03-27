@@ -22,6 +22,7 @@ function ShareContent() {
   const [preview, setPreview] = useState<ArticlePreview | null>(null)
   const [pasteText, setPasteText] = useState('')
   const [error, setError] = useState('')
+  const [isPrivate, setIsPrivate] = useState(false)
 
   useEffect(() => {
     if (!sharedUrl) {
@@ -78,7 +79,7 @@ function ShareContent() {
     const res = await fetch('/api/articles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(preview),
+      body: JSON.stringify({ ...preview, is_private: isPrivate }),
     })
     if (res.ok) {
       setStep('saved')
@@ -256,7 +257,26 @@ function ShareContent() {
 
           {/* Sticky save button */}
           <div className="sticky bottom-0 px-4 pb-6 pt-3 bg-stone-50 dark:bg-stone-950 border-t border-gray-200 dark:border-stone-700">
-            <div className="max-w-xl mx-auto">
+            <div className="max-w-xl mx-auto space-y-3">
+              {/* Privacy toggle */}
+              <div className="flex items-center justify-between px-1">
+                <div>
+                  <p className="text-sm font-medium text-stone-900 dark:text-stone-100">
+                    {isPrivate ? '🔒 Private' : '🌐 Public'}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                    {isPrivate ? 'Only you can see this' : 'Visible on your profile'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPrivate(p => !p)}
+                  className={`relative w-10 h-6 rounded-full transition-colors focus:outline-none ${isPrivate ? 'bg-stone-300 dark:bg-stone-600' : 'bg-amber-500'}`}
+                  aria-label={isPrivate ? 'Make public' : 'Make private'}
+                >
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${isPrivate ? 'left-1' : 'left-5'}`} />
+                </button>
+              </div>
               <button
                 onClick={handleSave}
                 disabled={step === 'saving'}
