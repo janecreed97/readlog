@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getUserTaxonomy, buildCategoryPromptSection } from '@/lib/taxonomy'
 
 const GEMINI_API_KEY = process.env.GOOGLE_GENERATIVE_AI_API_KEY!
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
@@ -73,6 +74,10 @@ export async function POST(request: Request) {
 
   const truncated = text.slice(0, MAX_TEXT_LENGTH)
 
+  // Fetch user's existing taxonomy so the model reuses existing categories where they fit
+  const taxonomy = await getUserTaxonomy(admin, keyRow.user_id)
+  const taxonomyClause = buildCategoryPromptSection(taxonomy)
+
   const prompt = `Given the following article text (extracted from a browser page — may include some navigation or footer boilerplate, focus on the main article body), return a JSON object with exactly these fields:
 - title (string): the article title
 - source (string): publication name (e.g. NYT, Bloomberg, FT) — infer from URL if needed
@@ -80,7 +85,7 @@ export async function POST(request: Request) {
 - category (string): top-level category (e.g. Energy, Finance, Technology, Policy, Health)
 - subcategory (string): more specific sub-topic (e.g. Nuclear, Private Credit, AI, Climate)
 - bullets (array of 2-5 strings): key takeaways as concise bullet points
-
+${taxonomyClause}
 Return only valid JSON, no markdown, no explanation.
 
 Article URL: ${url}

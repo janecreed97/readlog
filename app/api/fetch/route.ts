@@ -3,6 +3,7 @@ import { Readability } from '@mozilla/readability'
 import { parseHTML } from 'linkedom'
 import { createClient } from '@/lib/supabase/server'
 import type { ArticlePreview } from '@/lib/types'
+import { getUserTaxonomy, buildCategoryPromptSection, type Taxonomy } from '@/lib/taxonomy'
 
 const GEMINI_API_KEY = process.env.GOOGLE_GENERATIVE_AI_API_KEY!
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
@@ -41,10 +42,11 @@ async function callGemini(prompt: string): Promise<string> {
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
 }
 
-async function summarizeWithGemini(text: string, url: string, direction?: string): Promise<Omit<ArticlePreview, 'is_paywalled' | 'url'>> {
+async function summarizeWithGemini(text: string, url: string, direction?: string, taxonomy?: Taxonomy): Promise<Omit<ArticlePreview, 'is_paywalled' | 'url'>> {
   const directionClause = direction
     ? `\n  Special instruction for the bullet points: ${direction}`
     : ''
+  const taxonomyClause = taxonomy ? buildCategoryPromptSection(taxonomy) : ''
   const prompt = `Given the following article text, return a JSON object with exactly these fields:
 - title (string): the article title
 - source (string): publication name (e.g. NYT, Bloomberg, TechCrunch) — infer from URL if not in text
@@ -52,7 +54,7 @@ async function summarizeWithGemini(text: string, url: string, direction?: string
 - category (string): top-level category (e.g. Energy, Finance, Technology, Policy, Health)
 - subcategory (string): more specific sub-topic (e.g. Nuclear, Private Credit, AI, Climate)
 - bullets (array of 2-5 strings): key takeaways as concise bullet points${directionClause}
-
+${taxonomyClause}
 Return only valid JSON, no markdown, no explanation.
 
 Article URL: ${url}
@@ -131,9 +133,12 @@ export async function POST(request: Request) {
   const { url, pasteText, direction } = await request.json()
   if (!url) return NextResponse.json({ error: 'URL required' }, { status: 400 })
 
+  // Fetch user's existing taxonomy once — used by all summarization paths below
+  const taxonomy = await getUserTaxonomy(supabase, user.id)
+
   if (pasteText?.trim()) {
     try {
-      const summary = await summarizeWithGemini(pasteText.trim(), url, direction?.trim() || undefined)
+      const summary = await summarizeWithGemini(pasteText.trim(), url, direction?.trim() || undefined, taxonomy)
       return NextResponse.json({ ...summary, is_paywalled: true, is_private: false, url } satisfies ArticlePreview)
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
@@ -178,7 +183,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const summary = await summarizeWithGemini(articleText, url, direction?.trim() || undefined)
+    const summary = await summarizeWithGemini(articleText, url, direction?.trim() || undefined, taxonomy)
     return NextResponse.json({ ...summary, is_paywalled: false, is_private: false, url } satisfies ArticlePreview)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
