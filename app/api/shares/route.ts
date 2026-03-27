@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendShareNotification } from '@/lib/email'
 
 export async function POST(request: Request) {
@@ -77,10 +77,7 @@ async function sendEmailNotifications({
   if (!process.env.RESEND_API_KEY) return
 
   // Use admin client to look up auth emails (not available via regular client)
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const admin = createAdminClient()
 
   // Fetch profiles with email_notifications = true for these recipients
   const { data: profiles } = await admin
