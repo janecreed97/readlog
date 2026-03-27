@@ -200,7 +200,7 @@ function ShareContent() {
             </button>
             <button
               onClick={() => {
-                if (!preview) setPreview({ title: '', source: '', published_date: null, category: '', subcategory: '', bullets: [], is_paywalled: true, url: sharedUrl })
+                if (!preview) setPreview({ title: '', source: '', published_date: null, category: '', subcategory: '', bullets: [], is_paywalled: true, is_private: false, url: sharedUrl })
                 setStep('preview')
               }}
               className="w-full text-sm text-gray-500 dark:text-gray-400 py-3 rounded-xl border border-gray-200 dark:border-stone-700 hover:border-gray-400 dark:hover:border-stone-500"

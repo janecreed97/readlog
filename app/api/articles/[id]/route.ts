@@ -49,6 +49,14 @@ export async function DELETE(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // Reset any inbox share that was "saved" to this article so the user can re-save from inbox
+  await supabase
+    .from('shares')
+    .update({ status: 'read', saved_at: null })
+    .eq('article_id', params.id)
+    .eq('recipient_id', user.id)
+    .eq('status', 'saved')
+
   const { error } = await supabase
     .from('articles')
     .delete()

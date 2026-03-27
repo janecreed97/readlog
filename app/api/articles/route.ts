@@ -36,7 +36,10 @@ export async function POST(request: Request) {
       category: preview.category,
       subcategory: preview.subcategory,
       is_paywalled: preview.is_paywalled,
+      is_private: preview.is_private ?? false,
       article_type: 'article',
+      shared_by: preview.shared_by_id ?? null,
+      shared_by_name: preview.shared_by_name ?? null,
     })
     .select()
     .single()

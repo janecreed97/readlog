@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile, Friendship } from '@/lib/types'
 
@@ -97,13 +98,13 @@ export default function FriendsPage() {
             <div className="space-y-2">
               {searchResults.map((profile) => (
                 <div key={profile.id} className="bg-white dark:bg-stone-900 rounded-xl border border-gray-200 dark:border-stone-700 px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
+                  <Link href={`/profile/${profile.username}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                     <Avatar profile={profile} />
                     <div>
                       <p className="text-sm font-medium text-stone-900 dark:text-stone-100">{profile.display_name}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">@{profile.username}</p>
                     </div>
-                  </div>
+                  </Link>
                   {sentRequests.has(profile.id) ? (
                     <span className="text-xs text-gray-400 dark:text-gray-500">Request sent</span>
                   ) : (
@@ -129,13 +130,13 @@ export default function FriendsPage() {
             <div className="space-y-2">
               {requests.map((req) => req.profile && (
                 <div key={req.id} className="bg-white dark:bg-stone-900 rounded-xl border border-gray-200 dark:border-stone-700 px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
+                  <Link href={`/profile/${req.profile.username}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                     <Avatar profile={req.profile} />
                     <div>
                       <p className="text-sm font-medium text-stone-900 dark:text-stone-100">{req.profile.display_name}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">@{req.profile.username}</p>
                     </div>
-                  </div>
+                  </Link>
                   <div className="flex gap-2">
                     <button onClick={() => handleRequest(req.id, 'accept')} className="text-sm font-medium bg-gray-900 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700">Accept</button>
                     <button onClick={() => handleRequest(req.id, 'decline')} className="text-sm text-gray-400 dark:text-gray-500 hover:text-red-500 px-2 py-1.5">Decline</button>
@@ -157,13 +158,13 @@ export default function FriendsPage() {
             <div className="space-y-2">
               {friends.map((f) => (
                 <div key={f.id} className="bg-white dark:bg-stone-900 rounded-xl border border-gray-200 dark:border-stone-700 px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
+                  <Link href={`/profile/${f.username}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                     <Avatar profile={f} />
                     <div>
                       <p className="text-sm font-medium text-stone-900 dark:text-stone-100">{f.display_name}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">@{f.username}</p>
                     </div>
-                  </div>
+                  </Link>
                   {confirmUnfriend === f.id ? (
                     <div className="flex items-center gap-2 text-sm">
                       <span className="text-gray-500 dark:text-gray-400">Unfriend?</span>

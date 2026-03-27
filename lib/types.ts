@@ -8,6 +8,7 @@ export interface Article {
   category: string
   subcategory: string
   is_paywalled: boolean
+  is_private: boolean
   article_type: 'article' | 'video'
   created_at: string
   bullets?: Bullet[]
@@ -30,7 +31,11 @@ export interface ArticlePreview {
   subcategory: string
   bullets: string[]
   is_paywalled: boolean
+  is_private: boolean
   url: string
+  // Attribution when saving from another user's profile
+  shared_by_id?: string
+  shared_by_name?: string
 }
 
 export interface Profile {
@@ -71,4 +76,5 @@ export interface ShareRecord {
   read_at: string | null
   saved_at: string | null
   sender?: Profile
+  recipient?: Profile
 }

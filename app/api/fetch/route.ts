@@ -134,7 +134,7 @@ export async function POST(request: Request) {
   if (pasteText?.trim()) {
     try {
       const summary = await summarizeWithGemini(pasteText.trim(), url, direction?.trim() || undefined)
-      return NextResponse.json({ ...summary, is_paywalled: true, url } satisfies ArticlePreview)
+      return NextResponse.json({ ...summary, is_paywalled: true, is_private: false, url } satisfies ArticlePreview)
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       console.error('Gemini summarization error:', message)
@@ -172,13 +172,14 @@ export async function POST(request: Request) {
       subcategory: '',
       bullets:     [],
       is_paywalled: true,
+      is_private: false,
       url,
     } satisfies ArticlePreview)
   }
 
   try {
     const summary = await summarizeWithGemini(articleText, url, direction?.trim() || undefined)
-    return NextResponse.json({ ...summary, is_paywalled: false, url } satisfies ArticlePreview)
+    return NextResponse.json({ ...summary, is_paywalled: false, is_private: false, url } satisfies ArticlePreview)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     console.error('Gemini summarization error:', message)
