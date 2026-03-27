@@ -1,7 +1,8 @@
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = process.env.FROM_EMAIL ?? 'notifications@example.com'
+const FROM_EMAIL = process.env.FROM_EMAIL ?? 'notifications@example.com'
+const FROM = `Alexandria News <${FROM_EMAIL}>`
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://example.com'
 
 export async function sendShareNotification({
