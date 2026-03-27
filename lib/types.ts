@@ -56,6 +56,23 @@ export interface Friendship {
   profile?: Profile
 }
 
+export interface ShareReaction {
+  id: string
+  share_id: string
+  user_id: string
+  emoji: string
+  created_at: string
+}
+
+export interface ShareComment {
+  id: string
+  share_id: string
+  user_id: string
+  content: string
+  created_at: string
+  author?: Profile
+}
+
 export interface ShareRecord {
   id: string
   article_id: string | null

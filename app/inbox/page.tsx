@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import type { ShareRecord, Profile } from '@/lib/types'
+import type { ShareRecord, ShareReaction, ShareComment, Profile } from '@/lib/types'
+
+const EMOJIS = ['👍', '❤️', '😂', '😮', '🔥', '👎']
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -31,6 +33,156 @@ function Avatar({ profile, size = 36 }: { profile: Profile; size?: number }) {
   )
 }
 
+// ── Reaction bar ─────────────────────────────────────────────────────────────
+function ReactionBar({
+  shareId,
+  reactions,
+  myUserId,
+  isSent,
+  onToggle,
+}: {
+  shareId: string
+  reactions: ShareReaction[]
+  myUserId: string
+  isSent: boolean
+  onToggle: (shareId: string, emoji: string) => void
+}) {
+  // Group: emoji → count, and whether I have it
+  const counts: Record<string, number> = {}
+  let myEmoji: string | null = null
+  for (const r of reactions) {
+    counts[r.emoji] = (counts[r.emoji] ?? 0) + 1
+    if (r.user_id === myUserId) myEmoji = r.emoji
+  }
+
+  // Show emojis that have at least one reaction, plus all picker emojis
+  const shown = [...new Set([...EMOJIS, ...Object.keys(counts)])]
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {shown.map((emoji) => {
+        const count = counts[emoji] ?? 0
+        const isMe = myEmoji === emoji
+        return (
+          <button
+            key={emoji}
+            onClick={() => onToggle(shareId, emoji)}
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm transition-colors border ${
+              isMe
+                ? isSent
+                  ? 'bg-stone-700 border-stone-500 text-white'
+                  : 'bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700'
+                : isSent
+                ? 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'
+                : 'bg-gray-50 dark:bg-stone-800 border-gray-200 dark:border-stone-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-stone-700'
+            }`}
+          >
+            <span>{emoji}</span>
+            {count > 0 && <span className="text-xs font-medium">{count}</span>}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Comment thread ────────────────────────────────────────────────────────────
+function CommentThread({
+  shareId,
+  comments,
+  myUserId,
+  isSent,
+  onAdd,
+  onDelete,
+}: {
+  shareId: string
+  comments: ShareComment[]
+  myUserId: string
+  isSent: boolean
+  onAdd: (shareId: string, content: string) => Promise<void>
+  onDelete: (shareId: string, commentId: string) => void
+}) {
+  const [input, setInput] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  async function submit() {
+    const trimmed = input.trim()
+    if (!trimmed || submitting) return
+    setSubmitting(true)
+    await onAdd(shareId, trimmed)
+    setInput('')
+    setSubmitting(false)
+  }
+
+  return (
+    <div className="space-y-2">
+      {comments.map((c) => (
+        <div key={c.id} className="flex items-start gap-2 group">
+          {c.author && <Avatar profile={c.author} size={22} />}
+          <div className="flex-1 min-w-0">
+            <div className={`inline-block rounded-2xl px-3 py-1.5 text-sm max-w-full break-words ${
+              isSent
+                ? 'bg-stone-700 dark:bg-stone-600 text-stone-100'
+                : 'bg-gray-100 dark:bg-stone-700 text-stone-900 dark:text-stone-100'
+            }`}>
+              {c.author && (
+                <span className={`font-medium text-xs mr-1 ${isSent ? 'text-stone-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                  {c.author.display_name.split(' ')[0]}
+                </span>
+              )}
+              {c.content}
+            </div>
+            <div className="flex items-center gap-2 mt-0.5 pl-1">
+              <span className="text-xs text-gray-400 dark:text-gray-500">{timeAgo(c.created_at)}</span>
+              {c.user_id === myUserId && (
+                <button
+                  onClick={() => onDelete(shareId, c.id)}
+                  className="text-xs text-gray-300 dark:text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {/* Add comment */}
+      <div className="flex items-center gap-2 pt-1">
+        <input
+          ref={inputRef}
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() } }}
+          placeholder="Add a comment…"
+          maxLength={500}
+          className={`flex-1 text-sm px-3 py-1.5 rounded-full border focus:outline-none focus:ring-1 ${
+            isSent
+              ? 'bg-stone-800 dark:bg-stone-700 border-stone-600 text-stone-100 placeholder-stone-500 focus:ring-stone-500'
+              : 'bg-gray-50 dark:bg-stone-800 border-gray-200 dark:border-stone-600 text-stone-900 dark:text-stone-100 placeholder-gray-400 dark:placeholder-stone-500 focus:ring-stone-400'
+          }`}
+        />
+        {input.trim() && (
+          <button
+            onClick={submit}
+            disabled={submitting}
+            className={`text-sm font-medium px-3 py-1.5 rounded-full transition-colors ${
+              isSent
+                ? 'bg-stone-600 text-white hover:bg-stone-500'
+                : 'bg-gray-900 text-white hover:bg-gray-700'
+            } disabled:opacity-40`}
+          >
+            Send
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 type Direction = 'received' | 'sent'
 
 interface ConvMessage extends ShareRecord {
@@ -46,6 +198,12 @@ interface Conversation {
   latestAt: string
 }
 
+interface InteractionState {
+  reactions: ShareReaction[]
+  comments: ShareComment[]
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function InboxPage() {
   const router = useRouter()
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -53,10 +211,15 @@ export default function InboxPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [saved, setSaved] = useState<Set<string>>(new Set())
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  const [myUserId, setMyUserId] = useState('')
+  // interactions keyed by share id
+  const [interactions, setInteractions] = useState<Record<string, InteractionState>>({})
+  const [interactionsLoading, setInteractionsLoading] = useState(false)
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.push('/login'); return }
+      setMyUserId(user.id)
 
       Promise.all([
         fetch('/api/inbox').then(r => r.json()),
@@ -66,13 +229,7 @@ export default function InboxPage() {
 
         function upsert(personId: string, person: Profile, msg: ConvMessage) {
           if (!convMap.has(personId)) {
-            convMap.set(personId, {
-              otherPersonId: personId,
-              otherPerson: person,
-              messages: [],
-              unreadCount: 0,
-              latestAt: msg.sent_at,
-            })
+            convMap.set(personId, { otherPersonId: personId, otherPerson: person, messages: [], unreadCount: 0, latestAt: msg.sent_at })
           }
           const c = convMap.get(personId)!
           c.messages.push(msg)
@@ -89,17 +246,11 @@ export default function InboxPage() {
           upsert(item.recipient_id, item.recipient, { ...item, direction: 'sent', otherPerson: item.recipient })
         }
 
-        // Sort each conversation's messages chronologically (oldest first)
-        convMap.forEach(c => {
-          c.messages.sort((a, b) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime())
-        })
-
-        // Sort conversations by most recent
+        convMap.forEach(c => c.messages.sort((a, b) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime()))
         const sorted = [...convMap.values()].sort((a, b) => new Date(b.latestAt).getTime() - new Date(a.latestAt).getTime())
         setConversations(sorted)
         setLoading(false)
 
-        // Mark unread as read
         const unread = (Array.isArray(received) ? received : []).filter((s: ShareRecord) => s.status === 'unread')
         unread.forEach((s: ShareRecord) => {
           fetch(`/api/inbox/${s.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'read' }) })
@@ -108,15 +259,35 @@ export default function InboxPage() {
     })
   }, [router])
 
+  // Load interactions when conversation opens
+  useEffect(() => {
+    if (!selectedId) return
+    const conv = conversations.find(c => c.otherPersonId === selectedId)
+    if (!conv) return
+    const ids = conv.messages.map(m => m.id).join(',')
+    if (!ids) return
+    setInteractionsLoading(true)
+    fetch(`/api/shares/interactions?ids=${ids}`)
+      .then(r => r.json())
+      .then((data: { reactions: ShareReaction[]; comments: ShareComment[] }) => {
+        const next: Record<string, InteractionState> = {}
+        for (const msg of conv.messages) {
+          next[msg.id] = {
+            reactions: data.reactions.filter(r => r.share_id === msg.id),
+            comments: data.comments.filter(c => c.share_id === msg.id),
+          }
+        }
+        setInteractions(next)
+        setInteractionsLoading(false)
+      })
+      .catch(() => setInteractionsLoading(false))
+  }, [selectedId, conversations])
+
   async function handleSave(id: string) {
     const res = await fetch(`/api/inbox/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'saved' }) })
     if (res.ok) {
       setSaved(s => new Set([...s, id]))
-      // Update in-memory state
-      setConversations(convs => convs.map(c => ({
-        ...c,
-        messages: c.messages.map(m => m.id === id ? { ...m, status: 'saved' as const } : m),
-      })))
+      setConversations(convs => convs.map(c => ({ ...c, messages: c.messages.map(m => m.id === id ? { ...m, status: 'saved' as const } : m) })))
     }
   }
 
@@ -125,9 +296,51 @@ export default function InboxPage() {
     setDismissed(d => new Set([...d, id]))
   }
 
+  async function toggleReaction(shareId: string, emoji: string) {
+    const current = interactions[shareId]?.reactions ?? []
+    const myReaction = current.find(r => r.user_id === myUserId)
+
+    // Optimistic update
+    setInteractions(prev => {
+      const prevList = prev[shareId]?.reactions ?? []
+      let next: ShareReaction[]
+      if (myReaction?.emoji === emoji) {
+        next = prevList.filter(r => r.user_id !== myUserId)
+      } else {
+        const filtered = prevList.filter(r => r.user_id !== myUserId)
+        next = [...filtered, { id: 'tmp', share_id: shareId, user_id: myUserId, emoji, created_at: new Date().toISOString() }]
+      }
+      return { ...prev, [shareId]: { ...prev[shareId], reactions: next } }
+    })
+
+    if (myReaction?.emoji === emoji) {
+      await fetch(`/api/shares/${shareId}/react`, { method: 'DELETE' })
+    } else {
+      await fetch(`/api/shares/${shareId}/react`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ emoji }) })
+    }
+  }
+
+  async function addComment(shareId: string, content: string) {
+    const res = await fetch(`/api/shares/${shareId}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) })
+    if (!res.ok) return
+    const comment: ShareComment = await res.json()
+    setInteractions(prev => ({
+      ...prev,
+      [shareId]: { ...prev[shareId], comments: [...(prev[shareId]?.comments ?? []), comment] },
+    }))
+  }
+
+  function deleteComment(shareId: string, commentId: string) {
+    fetch(`/api/shares/${shareId}/comments/${commentId}`, { method: 'DELETE' })
+    setInteractions(prev => ({
+      ...prev,
+      [shareId]: { ...prev[shareId], comments: (prev[shareId]?.comments ?? []).filter(c => c.id !== commentId) },
+    }))
+  }
+
   const selectedConv = selectedId ? conversations.find(c => c.otherPersonId === selectedId) : null
 
-  // ── Conversation list ──────────────────────────────────────────────────
+  // ── Conversation list ────────────────────────────────────────────────────
   if (!selectedConv) {
     return (
       <div className="min-h-screen">
@@ -136,9 +349,7 @@ export default function InboxPage() {
 
           {loading ? (
             <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-white dark:bg-stone-900 rounded-xl border border-gray-200 dark:border-stone-700 p-4 animate-pulse h-20" />
-              ))}
+              {[...Array(3)].map((_, i) => <div key={i} className="bg-white dark:bg-stone-900 rounded-xl border border-gray-200 dark:border-stone-700 p-4 animate-pulse h-20" />)}
             </div>
           ) : conversations.length === 0 ? (
             <div className="py-20 text-center">
@@ -157,11 +368,7 @@ export default function InboxPage() {
                     onClick={() => setSelectedId(conv.otherPersonId)}
                     className="w-full text-left bg-white dark:bg-stone-900 rounded-xl border border-gray-200 dark:border-stone-700 px-4 py-3 flex items-center gap-3 hover:border-gray-300 dark:hover:border-stone-600 transition-colors"
                   >
-                    <Link
-                      href={`/profile/${conv.otherPerson.username}`}
-                      onClick={e => e.stopPropagation()}
-                      className="hover:opacity-80 transition-opacity"
-                    >
+                    <Link href={`/profile/${conv.otherPerson.username}`} onClick={e => e.stopPropagation()} className="hover:opacity-80 transition-opacity">
                       <Avatar profile={conv.otherPerson} />
                     </Link>
                     <div className="flex-1 min-w-0">
@@ -190,7 +397,7 @@ export default function InboxPage() {
     )
   }
 
-  // ── Thread view ────────────────────────────────────────────────────────
+  // ── Thread view ──────────────────────────────────────────────────────────
   const visibleMessages = selectedConv.messages.filter(m => !(m.direction === 'received' && dismissed.has(m.id)))
 
   return (
@@ -198,10 +405,7 @@ export default function InboxPage() {
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-4">
         {/* Thread header */}
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setSelectedId(null)}
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-stone-900 dark:hover:text-stone-100 flex items-center gap-1"
-          >
+          <button onClick={() => setSelectedId(null)} className="text-sm text-gray-500 dark:text-gray-400 hover:text-stone-900 dark:hover:text-stone-100 flex items-center gap-1">
             ← Back
           </button>
           <Link href={`/profile/${selectedConv.otherPerson.username}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -211,58 +415,59 @@ export default function InboxPage() {
           </Link>
         </div>
 
+        {interactionsLoading && (
+          <p className="text-xs text-gray-400 dark:text-gray-500 text-center animate-pulse">Loading…</p>
+        )}
+
         {/* Messages */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {visibleMessages.map((msg) => {
             const isSent = msg.direction === 'sent'
             const isSaved = saved.has(msg.id) || msg.status === 'saved'
+            const msgInteractions = interactions[msg.id] ?? { reactions: [], comments: [] }
 
             return (
               <div key={msg.id} className={`flex ${isSent ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] space-y-2 ${isSent ? 'items-end' : 'items-start'} flex flex-col`}>
+                <div className={`w-full max-w-[85%] space-y-2 flex flex-col ${isSent ? 'items-end' : 'items-start'}`}>
                   {/* Article card */}
                   <div className={`rounded-2xl border p-4 space-y-3 w-full ${
                     isSent
                       ? 'bg-stone-900 dark:bg-stone-700 border-stone-800 dark:border-stone-600 text-white'
                       : 'bg-white dark:bg-stone-900 border-gray-200 dark:border-stone-700'
                   }`}>
-                    <div className="space-y-1">
-                      <a
-                        href={msg.payload.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`font-semibold text-sm leading-snug block hover:underline ${isSent ? 'text-white' : 'text-stone-900 dark:text-stone-100 hover:text-amber-800 dark:hover:text-amber-400'}`}
-                      >
-                        {msg.payload.title}
-                      </a>
-                      <p className={`text-xs ${isSent ? 'text-stone-400' : 'text-gray-400 dark:text-gray-500'}`}>
-                        {msg.payload.source}{msg.payload.published_date ? ` · ${msg.payload.published_date}` : ''}
-                      </p>
-                      <div className="flex gap-1.5 flex-wrap">
-                        {msg.payload.category && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${isSent ? 'bg-stone-700 dark:bg-stone-600 text-stone-200' : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-gray-300'}`}>
-                            {msg.payload.category}
-                          </span>
-                        )}
-                        {msg.payload.subcategory && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${isSent ? 'bg-amber-900/40 text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400'}`}>
-                            {msg.payload.subcategory}
-                          </span>
-                        )}
-                      </div>
-                      {msg.payload.bullets?.length > 0 && (
-                        <ul className="space-y-0.5 pt-1">
-                          {msg.payload.bullets.slice(0, 3).map((b, i) => (
-                            <li key={i} className={`text-xs flex gap-1.5 ${isSent ? 'text-stone-300' : 'text-gray-500 dark:text-gray-400'}`}>
-                              <span className={`shrink-0 ${isSent ? 'text-stone-500' : 'text-gray-300 dark:text-gray-600'}`}>–</span>
-                              {b}
-                            </li>
-                          ))}
-                        </ul>
+                    <a
+                      href={msg.payload.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`font-semibold text-sm leading-snug block hover:underline ${isSent ? 'text-white' : 'text-stone-900 dark:text-stone-100 hover:text-amber-800 dark:hover:text-amber-400'}`}
+                    >
+                      {msg.payload.title}
+                    </a>
+                    <p className={`text-xs ${isSent ? 'text-stone-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                      {msg.payload.source}{msg.payload.published_date ? ` · ${msg.payload.published_date}` : ''}
+                    </p>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {msg.payload.category && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${isSent ? 'bg-stone-700 dark:bg-stone-600 text-stone-200' : 'bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-gray-300'}`}>
+                          {msg.payload.category}
+                        </span>
+                      )}
+                      {msg.payload.subcategory && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${isSent ? 'bg-amber-900/40 text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400'}`}>
+                          {msg.payload.subcategory}
+                        </span>
                       )}
                     </div>
-
-                    {/* Note */}
+                    {msg.payload.bullets?.length > 0 && (
+                      <ul className="space-y-0.5">
+                        {msg.payload.bullets.slice(0, 3).map((b, i) => (
+                          <li key={i} className={`text-xs flex gap-1.5 ${isSent ? 'text-stone-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                            <span className={isSent ? 'text-stone-500' : 'text-gray-300 dark:text-gray-600'}>–</span>
+                            {b}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     {msg.note && (
                       <p className={`text-sm italic border-t pt-2 ${isSent ? 'text-stone-300 border-stone-700' : 'text-gray-500 dark:text-gray-400 border-gray-100 dark:border-stone-700'}`}>
                         &ldquo;{msg.note}&rdquo;
@@ -270,27 +475,44 @@ export default function InboxPage() {
                     )}
                   </div>
 
-                  {/* Actions (received only) */}
+                  {/* Save / Dismiss (received only) */}
                   {!isSent && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 px-1">
                       {isSaved ? (
                         <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Saved to Library</span>
                       ) : (
-                        <button
-                          onClick={() => handleSave(msg.id)}
-                          className="text-xs font-medium bg-gray-900 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700"
-                        >
+                        <button onClick={() => handleSave(msg.id)} className="text-xs font-medium bg-gray-900 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700">
                           Save to Library
                         </button>
                       )}
-                      <button
-                        onClick={() => handleDismiss(msg.id)}
-                        className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-                      >
+                      <button onClick={() => handleDismiss(msg.id)} className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                         Dismiss
                       </button>
                     </div>
                   )}
+
+                  {/* Reactions */}
+                  <div className="w-full px-1">
+                    <ReactionBar
+                      shareId={msg.id}
+                      reactions={msgInteractions.reactions}
+                      myUserId={myUserId}
+                      isSent={isSent}
+                      onToggle={toggleReaction}
+                    />
+                  </div>
+
+                  {/* Comments */}
+                  <div className="w-full px-1">
+                    <CommentThread
+                      shareId={msg.id}
+                      comments={msgInteractions.comments}
+                      myUserId={myUserId}
+                      isSent={isSent}
+                      onAdd={addComment}
+                      onDelete={deleteComment}
+                    />
+                  </div>
 
                   {/* Timestamp */}
                   <p className="text-xs text-gray-400 dark:text-gray-500 px-1">{timeAgo(msg.sent_at)}</p>
