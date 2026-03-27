@@ -17,15 +17,6 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<{ display_name: string; username: string; email_notifications?: boolean } | null>(null)
   const [emailNotifications, setEmailNotifications] = useState(false)
   const [savingNotif, setSavingNotif] = useState(false)
-  const [keyCopied, setKeyCopied] = useState(false)
-
-  function copyKey() {
-    if (!bookmarkletKey) return
-    navigator.clipboard.writeText(bookmarkletKey).then(() => {
-      setKeyCopied(true)
-      setTimeout(() => setKeyCopied(false), 2000)
-    })
-  }
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -83,9 +74,10 @@ export default function SettingsPage() {
     }
   }
 
-  // Minified bookmarklet — domain blocking is handled server-side so the href stays short and readable
+  // Minified bookmarklet — uses targeted article selectors to look less like a scraper,
+  // domain blocking is handled server-side so the href stays short and readable
   const bookmarklet = (origin && bookmarkletKey)
-    ? `javascript:(function(){var u=window.location.href;if(!confirm('Save to Alexandria?')){return;}var t=document.body.innerText;fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'application/json','X-Bookmarklet-Key':'${bookmarkletKey}'},body:JSON.stringify({url:u,text:t})}).then(function(r){return r.json()}).then(function(d){if(d.error){alert('Alexandria: '+d.error);return;}var w=window.open('${origin}/add?token='+d.token,'alexandria','width=520,height=700,resizable=yes');if(!w){alert('Alexandria: popup was blocked. Please allow popups for this site, then try again.');}}).catch(function(){alert('Alexandria: could not connect.');});})();`
+    ? `javascript:(function(){var u=window.location.href;if(!confirm('Save to Alexandria?')){return;}var el=document.querySelector('article')||document.querySelector('[role="main"]')||document.querySelector('main')||document.body;var t=el.innerText;fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'application/json','X-Bookmarklet-Key':'${bookmarkletKey}'},body:JSON.stringify({url:u,text:t})}).then(function(r){return r.json()}).then(function(d){if(d.error){alert('Alexandria: '+d.error);return;}var w=window.open('${origin}/add?token='+d.token,'alexandria','width=520,height=700,resizable=yes');if(!w){alert('Alexandria: popup was blocked. Please allow popups for this site, then try again.');}}).catch(function(){alert('Alexandria: could not connect.');});})();`
     : '#'
 
   const ready = origin && bookmarkletKey
@@ -210,78 +202,6 @@ export default function SettingsPage() {
 
             <p className="text-xs text-gray-400 dark:text-gray-500">
               The bookmarklet only runs when you click it. It has no background access and cannot see other tabs. Sensitive sites (banking, email, health) are automatically blocked.
-            </p>
-          </div>
-        </section>
-
-        {/* iOS Shortcut section */}
-        <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6 space-y-5">
-          <div>
-            <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100 mb-1">Save from Mobile Apps</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Use an iOS Shortcut to save articles from native apps like The Economist, Bloomberg, or NYT — even paywalled ones. Select the article text, tap Share, and choose your Shortcut.
-            </p>
-          </div>
-
-          {/* API key */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Your API key</p>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 font-mono text-xs bg-stone-100 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-3 py-2 text-stone-700 dark:text-stone-300 truncate select-all">
-                {bookmarkletKey || '…loading'}
-              </code>
-              <button
-                onClick={copyKey}
-                disabled={!bookmarkletKey}
-                className="shrink-0 flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 dark:border-stone-700 text-gray-600 dark:text-gray-400 hover:border-gray-400 dark:hover:border-stone-500 transition-colors disabled:opacity-40"
-              >
-                {keyCopied ? (
-                  <>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                    Copy
-                  </>
-                )}
-              </button>
-            </div>
-            <p className="text-xs text-gray-400 dark:text-gray-500">You&apos;ll paste this into your Shortcut below. Keep it private — it&apos;s like a password for your library.</p>
-          </div>
-
-          {/* Setup steps */}
-          <div className="bg-stone-50 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-700 px-4 py-4 space-y-3">
-            <p className="text-xs font-medium text-stone-900 dark:text-stone-100 uppercase tracking-wide">Shortcut setup (one time)</p>
-            <ol className="space-y-2.5 text-xs text-gray-600 dark:text-gray-300 list-decimal list-inside">
-              <li>Open the <span className="font-medium text-stone-900 dark:text-stone-100">Shortcuts</span> app on your iPhone → tap <span className="font-medium text-stone-900 dark:text-stone-100">+</span> to create a new shortcut</li>
-              <li>Tap <span className="font-medium text-stone-900 dark:text-stone-100">Add Action</span> → search for <span className="font-medium text-stone-900 dark:text-stone-100">&quot;Receive input from Share Sheet&quot;</span> → set it to accept <span className="font-medium text-stone-900 dark:text-stone-100">Text</span></li>
-              <li>Add another action: <span className="font-medium text-stone-900 dark:text-stone-100">&quot;Get Contents of URL&quot;</span>
-                <ul className="mt-1.5 ml-4 space-y-1 list-disc">
-                  <li>URL: <code className="font-mono bg-stone-200 dark:bg-stone-700 px-1 rounded">{origin || 'https://www.alexandria-news-ai.com'}/api/save/text</code></li>
-                  <li>Method: <span className="font-medium text-stone-900 dark:text-stone-100">POST</span></li>
-                  <li>Headers: add <code className="font-mono bg-stone-200 dark:bg-stone-700 px-1 rounded">X-Bookmarklet-Key</code> → paste your API key above</li>
-                  <li>Request body: <span className="font-medium text-stone-900 dark:text-stone-100">JSON</span> → add field <code className="font-mono bg-stone-200 dark:bg-stone-700 px-1 rounded">text</code> → set value to <span className="font-medium text-stone-900 dark:text-stone-100">Shortcut Input</span></li>
-                </ul>
-              </li>
-              <li>Add action: <span className="font-medium text-stone-900 dark:text-stone-100">&quot;Get Dictionary Value&quot;</span> — key: <code className="font-mono bg-stone-200 dark:bg-stone-700 px-1 rounded">article</code> from the URL result, then another to get key <code className="font-mono bg-stone-200 dark:bg-stone-700 px-1 rounded">title</code></li>
-              <li>Add action: <span className="font-medium text-stone-900 dark:text-stone-100">&quot;Show Notification&quot;</span> — title: <span className="italic">Saved to Alexandria</span>, body: the title from step 4</li>
-              <li>Name the shortcut <span className="font-medium text-stone-900 dark:text-stone-100">&quot;Save to Alexandria&quot;</span> and make sure <span className="font-medium text-stone-900 dark:text-stone-100">Show in Share Sheet</span> is enabled</li>
-            </ol>
-          </div>
-
-          {/* How to use */}
-          <div className="bg-stone-50 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-700 px-4 py-4 space-y-3">
-            <p className="text-xs font-medium text-stone-900 dark:text-stone-100 uppercase tracking-wide">How to use it</p>
-            <ol className="space-y-1.5 text-xs text-gray-600 dark:text-gray-300 list-decimal list-inside">
-              <li>Open an article in The Economist (or any app) and read it</li>
-              <li>Select all the text you want to save — long-press a word, then drag to select more</li>
-              <li>Tap <span className="font-medium text-stone-900 dark:text-stone-100">Share</span> → scroll to find <span className="font-medium text-stone-900 dark:text-stone-100">Save to Alexandria</span></li>
-              <li>The article is summarised and saved to your library automatically — you&apos;ll get a notification when it&apos;s done</li>
-            </ol>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-              Tip: on iOS you can also tap <span className="font-medium">Select All</span> after long-pressing to grab the entire article at once.
             </p>
           </div>
         </section>
