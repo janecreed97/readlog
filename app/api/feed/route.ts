@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import type { Profile } from '@/lib/types'
 
 export async function GET() {
   const supabase = await createClient()
@@ -19,20 +20,26 @@ export async function GET() {
 
   if (friendIds.length === 0) return NextResponse.json([])
 
-  // Get recent public articles from friends, with bullets and author profile
-  const { data: articles, error } = await supabase
-    .from('articles')
-    .select(`
-      id, url, title, source, published_date, category, subcategory, created_at,
-      bullets ( id, content, position ),
-      profiles!articles_user_id_fkey ( id, display_name, username, avatar_url )
-    `)
-    .in('user_id', friendIds)
-    .eq('is_private', false)
-    .order('created_at', { ascending: false })
-    .limit(60)
+  // Fetch articles and profiles in parallel
+  const [{ data: articles }, { data: profiles }] = await Promise.all([
+    supabase
+      .from('articles')
+      .select('id, url, title, source, published_date, category, subcategory, created_at, user_id, bullets(id, content, position)')
+      .in('user_id', friendIds)
+      .eq('is_private', false)
+      .order('created_at', { ascending: false })
+      .limit(60),
+    supabase
+      .from('profiles')
+      .select('id, display_name, username, avatar_url')
+      .in('id', friendIds),
+  ])
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!articles) return NextResponse.json([])
 
-  return NextResponse.json(articles ?? [])
+  // Attach profile to each article
+  const profileMap = Object.fromEntries((profiles ?? []).map((p: Pick<Profile, 'id' | 'display_name' | 'username' | 'avatar_url'>) => [p.id, p]))
+  const feed = articles.map(a => ({ ...a, profiles: profileMap[a.user_id] ?? null }))
+
+  return NextResponse.json(feed)
 }
