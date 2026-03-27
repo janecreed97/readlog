@@ -3,12 +3,15 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+
 export default function SettingsPage() {
   const router = useRouter()
   const [origin, setOrigin] = useState('')
   const [bookmarkletKey, setBookmarkletKey] = useState('')
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
-  const [profile, setProfile] = useState<{ display_name: string; username: string } | null>(null)
+  const [profile, setProfile] = useState<{ display_name: string; username: string; email_notifications?: boolean } | null>(null)
+  const [emailNotifications, setEmailNotifications] = useState(false)
+  const [savingNotif, setSavingNotif] = useState(false)
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -20,7 +23,10 @@ export default function SettingsPage() {
       })
       // Fetch profile
       fetch('/api/profile').then(r => r.json()).then(p => {
-        if (p?.id) setProfile(p)
+        if (p?.id) {
+          setProfile(p)
+          setEmailNotifications(p.email_notifications ?? false)
+        }
       })
     })
   }, [router])
@@ -38,6 +44,24 @@ export default function SettingsPage() {
     localStorage.setItem('theme', next)
     if (next === 'dark') document.documentElement.classList.add('dark')
     else document.documentElement.classList.remove('dark')
+  }
+
+  async function toggleEmailNotifications() {
+    const next = !emailNotifications
+    setEmailNotifications(next)
+    setSavingNotif(true)
+    try {
+      await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email_notifications: next }),
+      })
+    } catch {
+      // Revert on failure
+      setEmailNotifications(!next)
+    } finally {
+      setSavingNotif(false)
+    }
   }
 
   // Minified bookmarklet — domain blocking is handled server-side so the href stays short and readable
@@ -72,6 +96,33 @@ export default function SettingsPage() {
               <a href="/profile/setup" className="text-sm text-amber-700 dark:text-amber-400 hover:underline font-medium">Set up profile →</a>
             </div>
           )}
+        </section>
+
+        {/* Notifications section */}
+        <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6">
+          <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100 mb-4">Notifications</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Email when someone shares an article</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Get an email at your account address whenever a friend sends you something
+              </p>
+            </div>
+            <button
+              onClick={toggleEmailNotifications}
+              disabled={savingNotif || !profile}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+                emailNotifications ? 'bg-amber-500' : 'bg-gray-200 dark:bg-stone-700'
+              }`}
+              aria-label="Toggle email notifications"
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  emailNotifications ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
         </section>
 
         {/* Bookmarklet section */}
@@ -135,6 +186,7 @@ export default function SettingsPage() {
             </p>
           </div>
         </section>
+
         {/* Appearance section */}
         <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6">
           <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100 mb-4">Appearance</h2>
