@@ -40,7 +40,7 @@ export default function HeaderNav() {
     } catch {}
   }, [])
 
-  // Listen for add / help events dispatched by library page
+  // Listen for help events dispatched by other pages
   useEffect(() => {
     const onHelp = () => setShowHelp(true)
     window.addEventListener('alexandria:help', onHelp)
@@ -59,9 +59,10 @@ export default function HeaderNav() {
 
   if (HIDDEN_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))) return null
 
-  const isLibrary = pathname === '/'
-  const isFriends = pathname === '/friends'
-  const isInbox = pathname === '/inbox'
+  const isLibrary  = pathname === '/'
+  const isFeed     = pathname === '/feed'
+  const isFriends  = pathname === '/friends'
+  const isInbox    = pathname === '/inbox'
   const isSettings = pathname === '/settings'
 
   function navCls(active: boolean) {
@@ -91,6 +92,7 @@ export default function HeaderNav() {
               </Link>
               <nav className="hidden sm:flex gap-4 text-sm">
                 <Link href="/" className={navCls(isLibrary)}>Library</Link>
+                <Link href="/feed" className={navCls(isFeed)}>Feed</Link>
                 <Link href="/friends" className={navCls(isFriends)}>
                   Friends
                   {friendsCount > 0 && (
@@ -107,12 +109,11 @@ export default function HeaderNav() {
                     </span>
                   )}
                 </Link>
-                <Link href="/settings" className={navCls(isSettings)}>Settings</Link>
               </nav>
             </div>
 
             {/* Right: actions */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-2.5">
               {isLibrary && (
                 <button
                   onClick={() => window.dispatchEvent(new Event('alexandria:add'))}
@@ -122,6 +123,22 @@ export default function HeaderNav() {
                   <span className="hidden sm:inline">+ Add article</span>
                 </button>
               )}
+              {/* Settings gear */}
+              <Link
+                href="/settings"
+                aria-label="Settings"
+                className={`flex items-center justify-center w-7 h-7 rounded-md border transition-colors ${
+                  isSettings
+                    ? 'border-stone-400 dark:border-stone-500 text-stone-700 dark:text-stone-300'
+                    : 'border-gray-300 dark:border-stone-600 text-gray-400 dark:text-gray-500 hover:border-gray-500 dark:hover:border-stone-400 hover:text-gray-600 dark:hover:text-gray-300'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </Link>
+              {/* Help */}
               <button
                 onClick={() => setShowHelp(true)}
                 className="flex items-center justify-center w-7 h-7 rounded-md border border-gray-300 dark:border-stone-600 text-xs text-gray-400 dark:text-gray-500 hover:border-gray-500 dark:hover:border-stone-400 hover:text-gray-600 dark:hover:text-gray-300"
@@ -138,16 +155,16 @@ export default function HeaderNav() {
             </div>
           </div>
 
-          {/* Mobile tab bar — 4 tabs, no sign-out button */}
+          {/* Mobile tab bar — Library / Feed / Friends / Inbox */}
           <div className="sm:hidden flex border-t border-gray-100 dark:border-stone-800">
             <Link href="/" className={tabCls(isLibrary)}>Library</Link>
+            <Link href="/feed" className={tabCls(isFeed)}>Feed</Link>
             <Link href="/friends" className={tabCls(isFriends)}>
               Friends{friendsCount > 0 && <span className="ml-0.5 text-amber-500">·</span>}
             </Link>
             <Link href="/inbox" className={tabCls(isInbox)}>
               Inbox{inboxCount > 0 && <span className="ml-0.5 text-amber-500">·</span>}
             </Link>
-            <Link href="/settings" className={tabCls(isSettings)}>Settings</Link>
           </div>
         </div>
       </header>
