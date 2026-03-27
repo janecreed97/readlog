@@ -30,6 +30,105 @@ function Avatar({ profile, size = 48 }: { profile: Profile; size?: number }) {
   )
 }
 
+function ArticleModal({
+  article,
+  isSaved,
+  saving,
+  onSave,
+  onClose,
+}: {
+  article: Article
+  isSaved: boolean
+  saving: boolean
+  onSave: () => void
+  onClose: () => void
+}) {
+  const bullets = (article.bullets ?? []).sort((a, b) => a.position - b.position)
+
+  // Close on Escape
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+
+      <div className="relative z-10 bg-white dark:bg-stone-900 w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 dark:border-stone-700 shrink-0">
+          <div className="flex gap-1.5 flex-wrap">
+            {article.category && (
+              <span className="text-xs bg-gray-100 dark:bg-stone-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full">
+                {article.category}
+              </span>
+            )}
+            {article.subcategory && (
+              <span className="text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400 px-2 py-0.5 rounded-full">
+                {article.subcategory}
+              </span>
+            )}
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none ml-3 shrink-0">✕</button>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+          {/* Source + date */}
+          <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+            {article.source && <span className="font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">{article.source}</span>}
+            {article.published_date && <><span>·</span><span>{article.published_date}</span></>}
+            <span>·</span><span>{timeAgo(article.created_at)}</span>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100 leading-snug">
+            {article.title}
+          </h2>
+
+          {/* Bullets */}
+          {bullets.length > 0 && (
+            <ul className="space-y-2">
+              {bullets.map((b) => (
+                <li key={b.id} className="flex gap-2.5 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                  <span className="text-amber-500 shrink-0 mt-0.5">•</span>
+                  <span>{b.content}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-4 border-t border-gray-100 dark:border-stone-700 flex items-center gap-3 shrink-0">
+          <a
+            href={article.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 text-center text-sm font-medium border border-gray-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 py-2.5 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+          >
+            Read original ↗
+          </a>
+          <button
+            onClick={onSave}
+            disabled={isSaved || saving}
+            className={`flex-1 text-sm font-medium py-2.5 rounded-xl transition-colors ${
+              isSaved
+                ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800'
+                : 'bg-gray-900 dark:bg-stone-100 text-white dark:text-stone-900 hover:bg-gray-700 dark:hover:bg-stone-200 disabled:opacity-50'
+            }`}
+          >
+            {isSaved ? '✓ Saved to library' : saving ? 'Saving…' : 'Save to library'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ProfilePage() {
   const router = useRouter()
   const { username } = useParams<{ username: string }>()
@@ -39,6 +138,7 @@ export default function ProfilePage() {
   const [notFound, setNotFound] = useState(false)
   const [saving, setSaving] = useState<string | null>(null)
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
+  const [selected, setSelected] = useState<Article | null>(null)
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
@@ -146,7 +246,8 @@ export default function ProfilePage() {
               return (
                 <div
                   key={article.id}
-                  className="bg-white dark:bg-stone-900 border border-gray-200 dark:border-stone-700 rounded-xl p-5 space-y-3"
+                  onClick={() => setSelected(article)}
+                  className="bg-white dark:bg-stone-900 border border-gray-200 dark:border-stone-700 rounded-xl p-5 space-y-3 cursor-pointer hover:border-stone-300 dark:hover:border-stone-600 hover:shadow-sm transition-all"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1 min-w-0">
@@ -154,6 +255,7 @@ export default function ProfilePage() {
                         href={article.url}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
                         className="font-semibold text-stone-900 dark:text-stone-100 text-sm leading-snug hover:underline hover:text-amber-800 dark:hover:text-amber-400 block"
                       >
                         {article.title}
@@ -177,7 +279,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <button
-                      onClick={() => handleSave(article)}
+                      onClick={e => { e.stopPropagation(); handleSave(article) }}
                       disabled={isSaved || saving === article.id}
                       className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
                         isSaved
@@ -199,7 +301,7 @@ export default function ProfilePage() {
                       ))}
                       {bullets.length > 3 && (
                         <li className="text-xs text-gray-400 dark:text-gray-500 pl-4">
-                          +{bullets.length - 3} more
+                          +{bullets.length - 3} more points — click to expand
                         </li>
                       )}
                     </ul>
@@ -210,6 +312,17 @@ export default function ProfilePage() {
           </div>
         )}
       </main>
+
+      {/* Article detail modal */}
+      {selected && (
+        <ArticleModal
+          article={selected}
+          isSaved={savedIds.has(selected.id)}
+          saving={saving === selected.id}
+          onSave={() => handleSave(selected)}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   )
 }
