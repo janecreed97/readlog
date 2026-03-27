@@ -34,6 +34,8 @@ function Avatar({ profile, size = 36 }: { profile: Profile; size?: number }) {
 }
 
 // ── Reaction bar ─────────────────────────────────────────────────────────────
+// Rendered inside the article card. Shows existing reactions as pills + a
+// small "+" button that opens a floating emoji picker above it.
 function ReactionBar({
   shareId,
   reactions,
@@ -47,41 +49,79 @@ function ReactionBar({
   isSent: boolean
   onToggle: (shareId: string, emoji: string) => void
 }) {
-  // Group: emoji → count, and whether I have it
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  // Group: emoji → count, whether I have it
   const counts: Record<string, number> = {}
   let myEmoji: string | null = null
   for (const r of reactions) {
     counts[r.emoji] = (counts[r.emoji] ?? 0) + 1
     if (r.user_id === myUserId) myEmoji = r.emoji
   }
+  const active = Object.entries(counts).filter(([, c]) => c > 0)
 
-  // Show emojis that have at least one reaction, plus all picker emojis
-  const shown = [...new Set([...EMOJIS, ...Object.keys(counts)])]
+  function pick(emoji: string) {
+    onToggle(shareId, emoji)
+    setPickerOpen(false)
+  }
 
   return (
-    <div className="flex flex-wrap gap-1">
-      {shown.map((emoji) => {
-        const count = counts[emoji] ?? 0
-        const isMe = myEmoji === emoji
-        return (
-          <button
-            key={emoji}
-            onClick={() => onToggle(shareId, emoji)}
-            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm transition-colors border ${
-              isMe
-                ? isSent
-                  ? 'bg-stone-700 border-stone-500 text-white'
-                  : 'bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700'
-                : isSent
-                ? 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'
-                : 'bg-gray-50 dark:bg-stone-800 border-gray-200 dark:border-stone-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-stone-700'
-            }`}
-          >
-            <span>{emoji}</span>
-            {count > 0 && <span className="text-xs font-medium">{count}</span>}
-          </button>
-        )
-      })}
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {/* Existing reaction pills */}
+      {active.map(([emoji, count]) => (
+        <button
+          key={emoji}
+          onClick={() => onToggle(shareId, emoji)}
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors ${
+            myEmoji === emoji
+              ? isSent
+                ? 'bg-stone-600 border-stone-500 text-white'
+                : 'bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-stone-900 dark:text-stone-100'
+              : isSent
+              ? 'bg-stone-800 border-stone-700 text-stone-300 hover:bg-stone-700'
+              : 'bg-gray-100 dark:bg-stone-700 border-gray-200 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-gray-200 dark:hover:bg-stone-600'
+          }`}
+        >
+          <span>{emoji}</span>
+          <span className="text-xs font-medium">{count}</span>
+        </button>
+      ))}
+
+      {/* + trigger */}
+      <div className="relative">
+        <button
+          onClick={() => setPickerOpen(o => !o)}
+          aria-label="Add reaction"
+          className={`w-6 h-6 rounded-full border flex items-center justify-center text-sm leading-none transition-colors ${
+            isSent
+              ? 'border-stone-600 text-stone-400 hover:bg-stone-700 hover:text-stone-200'
+              : 'border-gray-300 dark:border-stone-600 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-stone-700 hover:text-gray-600 dark:hover:text-gray-300'
+          }`}
+        >
+          +
+        </button>
+
+        {pickerOpen && (
+          <>
+            {/* Backdrop to close picker */}
+            <div className="fixed inset-0 z-10" onClick={() => setPickerOpen(false)} />
+            {/* Picker panel */}
+            <div className="absolute bottom-full mb-2 right-0 z-20 flex gap-1 bg-white dark:bg-stone-800 border border-gray-200 dark:border-stone-600 rounded-2xl px-2 py-1.5 shadow-xl">
+              {EMOJIS.map(emoji => (
+                <button
+                  key={emoji}
+                  onClick={() => pick(emoji)}
+                  className={`w-8 h-8 rounded-full text-lg flex items-center justify-center transition-colors hover:bg-gray-100 dark:hover:bg-stone-700 ${
+                    myEmoji === emoji ? 'bg-amber-50 dark:bg-amber-900/30' : ''
+                  }`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
@@ -473,6 +513,17 @@ export default function InboxPage() {
                         &ldquo;{msg.note}&rdquo;
                       </p>
                     )}
+
+                    {/* Reactions — live inside the card, flush to the bottom */}
+                    <div className={`flex items-center justify-between pt-2 border-t ${isSent ? 'border-stone-700 dark:border-stone-600' : 'border-gray-100 dark:border-stone-700'}`}>
+                      <ReactionBar
+                        shareId={msg.id}
+                        reactions={msgInteractions.reactions}
+                        myUserId={myUserId}
+                        isSent={isSent}
+                        onToggle={toggleReaction}
+                      />
+                    </div>
                   </div>
 
                   {/* Save / Dismiss (received only) */}
@@ -490,17 +541,6 @@ export default function InboxPage() {
                       </button>
                     </div>
                   )}
-
-                  {/* Reactions */}
-                  <div className="w-full px-1">
-                    <ReactionBar
-                      shareId={msg.id}
-                      reactions={msgInteractions.reactions}
-                      myUserId={myUserId}
-                      isSent={isSent}
-                      onToggle={toggleReaction}
-                    />
-                  </div>
 
                   {/* Comments */}
                   <div className="w-full px-1">
