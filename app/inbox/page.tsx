@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -50,6 +51,8 @@ function ReactionBar({
   onToggle: (shareId: string, emoji: string) => void
 }) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerStyle, setPickerStyle] = useState<{ bottom: number; left: number }>({ bottom: 0, left: 0 })
+  const btnRef = useRef<HTMLButtonElement>(null)
 
   // Group: emoji → count, whether I have it
   const counts: Record<string, number> = {}
@@ -59,6 +62,23 @@ function ReactionBar({
     if (r.user_id === myUserId) myEmoji = r.emoji
   }
   const active = Object.entries(counts).filter(([, c]) => c > 0)
+
+  function openPicker() {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      const pickerWidth = 232 // 6 × 32px buttons + gaps + padding ≈ 232px
+      // Center picker on button, clamped 8px from either edge
+      const left = Math.max(8, Math.min(
+        rect.left + rect.width / 2 - pickerWidth / 2,
+        window.innerWidth - pickerWidth - 8
+      ))
+      setPickerStyle({
+        bottom: window.innerHeight - rect.top + 8,
+        left,
+      })
+    }
+    setPickerOpen(o => !o)
+  }
 
   function pick(emoji: string) {
     onToggle(shareId, emoji)
@@ -88,40 +108,42 @@ function ReactionBar({
       ))}
 
       {/* + trigger */}
-      <div className="relative">
-        <button
-          onClick={() => setPickerOpen(o => !o)}
-          aria-label="Add reaction"
-          className={`w-6 h-6 rounded-full border flex items-center justify-center text-sm leading-none transition-colors ${
-            isSent
-              ? 'border-stone-600 text-stone-400 hover:bg-stone-700 hover:text-stone-200'
-              : 'border-gray-300 dark:border-stone-600 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-stone-700 hover:text-gray-600 dark:hover:text-gray-300'
-          }`}
-        >
-          +
-        </button>
+      <button
+        ref={btnRef}
+        onClick={openPicker}
+        aria-label="Add reaction"
+        className={`w-6 h-6 rounded-full border flex items-center justify-center text-sm leading-none transition-colors ${
+          isSent
+            ? 'border-stone-600 text-stone-400 hover:bg-stone-700 hover:text-stone-200'
+            : 'border-gray-300 dark:border-stone-600 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-stone-700 hover:text-gray-600 dark:hover:text-gray-300'
+        }`}
+      >
+        +
+      </button>
 
-        {pickerOpen && (
-          <>
-            {/* Backdrop to close picker */}
-            <div className="fixed inset-0 z-10" onClick={() => setPickerOpen(false)} />
-            {/* Picker panel */}
-            <div className="absolute bottom-full mb-2 right-0 z-20 flex gap-1 bg-white dark:bg-stone-800 border border-gray-200 dark:border-stone-600 rounded-2xl px-2 py-1.5 shadow-xl">
-              {EMOJIS.map(emoji => (
-                <button
-                  key={emoji}
-                  onClick={() => pick(emoji)}
-                  className={`w-8 h-8 rounded-full text-lg flex items-center justify-center transition-colors hover:bg-gray-100 dark:hover:bg-stone-700 ${
-                    myEmoji === emoji ? 'bg-amber-50 dark:bg-amber-900/30' : ''
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+      {/* Picker rendered in a portal so it's never clipped by parent overflow */}
+      {pickerOpen && typeof document !== 'undefined' && createPortal(
+        <>
+          <div className="fixed inset-0 z-[90]" onClick={() => setPickerOpen(false)} />
+          <div
+            className="fixed z-[91] flex gap-1 bg-white dark:bg-stone-800 border border-gray-200 dark:border-stone-600 rounded-2xl px-2 py-1.5 shadow-xl"
+            style={{ bottom: pickerStyle.bottom, left: pickerStyle.left }}
+          >
+            {EMOJIS.map(emoji => (
+              <button
+                key={emoji}
+                onClick={() => pick(emoji)}
+                className={`w-8 h-8 rounded-full text-lg flex items-center justify-center transition-colors hover:bg-gray-100 dark:hover:bg-stone-700 ${
+                  myEmoji === emoji ? 'bg-amber-50 dark:bg-amber-900/30' : ''
+                }`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </>,
+        document.body
+      )}
     </div>
   )
 }
