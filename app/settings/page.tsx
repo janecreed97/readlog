@@ -51,14 +51,19 @@ export default function SettingsPage() {
     setEmailNotifications(next)
     setSavingNotif(true)
     try {
-      await fetch('/api/profile', {
+      const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email_notifications: next }),
       })
-    } catch {
-      // Revert on failure
-      setEmailNotifications(!next)
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        console.error('[settings] PATCH /api/profile failed:', res.status, body)
+        setEmailNotifications(!next) // revert
+      }
+    } catch (err) {
+      console.error('[settings] PATCH /api/profile error:', err)
+      setEmailNotifications(!next) // revert
     } finally {
       setSavingNotif(false)
     }
