@@ -6,27 +6,9 @@ interface Props {
   onDone: () => void
 }
 
-const BLOCKED = [
-  'chase.com','bankofamerica.com','wellsfargo.com','citibank.com','capitalone.com',
-  'schwab.com','fidelity.com','vanguard.com','tdameritrade.com','robinhood.com',
-  'paypal.com','venmo.com','stripe.com','coinbase.com',
-  'turbotax.com','hrblock.com','mychart.com','epic.com','patient.com',
-  'gmail.com','mail.google.com','outlook.com','outlook.live.com',
-  'facebook.com','instagram.com','twitter.com','x.com',
-]
-
+// Domain blocking is handled server-side — keeps the bookmarklet href short and readable
 function buildBookmarkletHref(origin: string, key: string): string {
-  return `javascript:(function(){
-var B=['${BLOCKED.join("','")}'];
-var h=window.location.hostname.replace(/^www\./,'');
-if(B.some(function(d){return h===d||h.endsWith('.'+d);})){
-  alert('Alexandria: this page looks sensitive. The bookmarklet is blocked here for your safety.');return;
-}
-var u=window.location.href;
-if(!confirm('Save to Alexandria?')){return;}
-var t=document.body.innerText;
-fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'application/json','X-Bookmarklet-Key':'${key}'},body:JSON.stringify({url:u,text:t})}).then(function(r){return r.json()}).then(function(d){if(d.error){alert('Alexandria: '+d.error);return;}var w=window.open('${origin}/add?token='+d.token,'alexandria','width=520,height=700,resizable=yes');if(!w){alert('Alexandria: allow popups for this site, then try again.');}}).catch(function(){alert('Alexandria: could not connect.');});
-})();`.replace(/\n/g,'')
+  return `javascript:(function(){var u=window.location.href;if(!confirm('Save to Alexandria?')){return;}var t=document.body.innerText;fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'application/json','X-Bookmarklet-Key':'${key}'},body:JSON.stringify({url:u,text:t})}).then(function(r){return r.json()}).then(function(d){if(d.error){alert('Alexandria: '+d.error);return;}var w=window.open('${origin}/add?token='+d.token,'alexandria','width=520,height=700,resizable=yes');if(!w){alert('Alexandria: allow popups for this site, then try again.');}}).catch(function(){alert('Alexandria: could not connect.');});})();`
 }
 
 const STEP_TITLES = [

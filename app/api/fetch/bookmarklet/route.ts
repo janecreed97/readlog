@@ -45,6 +45,25 @@ export async function POST(request: Request) {
 
   const { url, text } = await request.json()
 
+  // Block sensitive domains server-side (keeps them out of the bookmarklet href)
+  const BLOCKED_DOMAINS = [
+    'chase.com','bankofamerica.com','wellsfargo.com','citibank.com','capitalone.com',
+    'schwab.com','fidelity.com','vanguard.com','tdameritrade.com','robinhood.com',
+    'paypal.com','venmo.com','stripe.com','coinbase.com',
+    'turbotax.com','hrblock.com','mychart.com','epic.com','patient.com',
+    'gmail.com','mail.google.com','outlook.com','outlook.live.com',
+    'facebook.com','instagram.com','twitter.com','x.com',
+  ]
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '')
+    if (BLOCKED_DOMAINS.some(d => host === d || host.endsWith('.' + d))) {
+      return NextResponse.json(
+        { error: 'This page looks sensitive (banking, email, or social). Alexandria is blocked here for your safety.' },
+        { status: 403, headers: cors(request) },
+      )
+    }
+  } catch { /* invalid URL — let it fall through to the length check */ }
+
   if (!text || text.trim().length < 200) {
     return NextResponse.json(
       { error: 'Article text too short — the page may not have loaded fully. Try refreshing and clicking the bookmarklet again.' },

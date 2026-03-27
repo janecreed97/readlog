@@ -40,33 +40,9 @@ export default function SettingsPage() {
     else document.documentElement.classList.remove('dark')
   }
 
-  // Sensitive domain blocklist — these will be blocked in the bookmarklet
-  const BLOCKED_DOMAINS = [
-    'chase.com','bankofamerica.com','wellsfargo.com','citibank.com','capitalone.com',
-    'schwab.com','fidelity.com','vanguard.com','tdameritrade.com','robinhood.com',
-    'paypal.com','venmo.com','stripe.com','coinbase.com',
-    'turbotax.com','hrblock.com',
-    'mychart.com','epic.com','patient.com',
-    'gmail.com','mail.google.com','outlook.com','outlook.live.com',
-    'facebook.com','instagram.com','twitter.com','x.com',
-  ].join(',')
-
-  // Minified bookmarklet — embeds personal API key so it works cross-origin without cookies
+  // Minified bookmarklet — domain blocking is handled server-side so the href stays short and readable
   const bookmarklet = (origin && bookmarkletKey)
-    ? `javascript:(function(){
-var BLOCKED=['${BLOCKED_DOMAINS.split(',').join("','")}'];
-var host=window.location.hostname.replace(/^www\./,'');
-if(BLOCKED.some(function(d){return host===d||host.endsWith('.'+d);})){
-  alert('Alexandria: this page looks sensitive (banking, email, or health). The bookmarklet is blocked here for your safety.');
-  return;
-}
-var title=document.title||window.location.href;
-var u=window.location.href;
-var wordCount=document.body.innerText.trim().split(/\s+/).length;
-if(!confirm('Save to Alexandria?')){return;}
-var t=document.body.innerText;
-fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'application/json','X-Bookmarklet-Key':'${bookmarkletKey}'},body:JSON.stringify({url:u,text:t})}).then(function(r){return r.json()}).then(function(d){if(d.error){alert('Alexandria: '+d.error);return;}var w=window.open('${origin}/add?token='+d.token,'alexandria','width=520,height=700,resizable=yes');if(!w){alert('Alexandria: popup was blocked. Please allow popups for this site in your browser settings, then try again.');}}).catch(function(){alert('Alexandria: could not connect.');});
-})();`.replace(/\n/g,'')
+    ? `javascript:(function(){var u=window.location.href;if(!confirm('Save to Alexandria?')){return;}var t=document.body.innerText;fetch('${origin}/api/fetch/bookmarklet',{method:'POST',headers:{'Content-Type':'application/json','X-Bookmarklet-Key':'${bookmarkletKey}'},body:JSON.stringify({url:u,text:t})}).then(function(r){return r.json()}).then(function(d){if(d.error){alert('Alexandria: '+d.error);return;}var w=window.open('${origin}/add?token='+d.token,'alexandria','width=520,height=700,resizable=yes');if(!w){alert('Alexandria: popup was blocked. Please allow popups for this site, then try again.');}}).catch(function(){alert('Alexandria: could not connect.');});})();`
     : '#'
 
   const ready = origin && bookmarkletKey
