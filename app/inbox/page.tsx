@@ -431,7 +431,7 @@ export default function InboxPage() {
           upsert(item.recipient_id, item.recipient, { ...item, direction: 'sent', otherPerson: item.recipient })
         }
 
-        convMap.forEach(c => c.messages.sort((a, b) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime()))
+        convMap.forEach(c => c.messages.sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime()))
         const sorted = [...convMap.values()].sort((a, b) => new Date(b.latestAt).getTime() - new Date(a.latestAt).getTime())
         setConversations(sorted)
         setLoading(false)
