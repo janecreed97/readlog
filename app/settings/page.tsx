@@ -4,6 +4,11 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+async function signOut(router: ReturnType<typeof useRouter>) {
+  await createClient().auth.signOut()
+  router.push('/login')
+}
+
 export default function SettingsPage() {
   const router = useRouter()
   const [origin, setOrigin] = useState('')
@@ -85,8 +90,8 @@ export default function SettingsPage() {
         </div>
 
         {/* Profile section */}
-        <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6">
-          <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100 mb-4">Profile</h2>
+        <section className="bg-white dark:bg-stone-900 rounded-2xl border border-gray-200 dark:border-stone-700 p-6 space-y-4">
+          <h2 className="text-base font-semibold text-stone-900 dark:text-stone-100">Profile</h2>
           {profile ? (
             <div className="flex items-center justify-between">
               <div>
@@ -101,6 +106,14 @@ export default function SettingsPage() {
               <a href="/profile/setup" className="text-sm text-amber-700 dark:text-amber-400 hover:underline font-medium">Set up profile →</a>
             </div>
           )}
+          <div className="border-t border-gray-100 dark:border-stone-700 pt-4">
+            <button
+              onClick={() => signOut(router)}
+              className="text-sm text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium"
+            >
+              Sign out
+            </button>
+          </div>
         </section>
 
         {/* Notifications section */}

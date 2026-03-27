@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import Logo from '@/components/Logo'
 import HelpModal from '@/components/HelpModal'
 import TutorialOverlay from '@/components/TutorialOverlay'
@@ -13,7 +12,6 @@ const HIDDEN_PATHS = ['/login', '/profile/setup', '/add']
 
 export default function HeaderNav() {
   const pathname = usePathname()
-  const router = useRouter()
   const [inboxCount, setInboxCount] = useState(0)
   const [friendsCount, setFriendsCount] = useState(0)
   const [showHelp, setShowHelp] = useState(false)
@@ -50,11 +48,6 @@ export default function HeaderNav() {
   function handleTutorialDone() {
     try { localStorage.setItem('alexandria-tutorial-seen', '1') } catch {}
     setShowTutorial(false)
-  }
-
-  async function handleSignOut() {
-    await createClient().auth.signOut()
-    router.push('/login')
   }
 
   if (HIDDEN_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))) return null
@@ -145,12 +138,6 @@ export default function HeaderNav() {
                 aria-label="Help"
               >
                 ?
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="hidden sm:block text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-              >
-                Sign out
               </button>
             </div>
           </div>
