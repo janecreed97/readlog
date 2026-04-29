@@ -23,7 +23,8 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const preview: ArticlePreview = await request.json()
+  const body = await request.json()
+  const { _tokenId, ...preview } = body as ArticlePreview & { _tokenId?: string }
 
   const { data: article, error: articleError } = await supabase
     .from('articles')
@@ -55,6 +56,11 @@ export async function POST(request: Request) {
       }))
     )
     if (bulletsError) return NextResponse.json({ error: bulletsError.message }, { status: 500 })
+  }
+
+  // Mark token used now that the article is actually saved
+  if (_tokenId) {
+    await supabase.from('tokens').update({ used: true }).eq('id', _tokenId).eq('user_id', user.id)
   }
 
   return NextResponse.json(article, { status: 201 })

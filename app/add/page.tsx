@@ -38,7 +38,7 @@ function AddContent() {
     const res = await fetch('/api/articles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(preview),
+      body: JSON.stringify(preview), // _tokenId included in preview, articles route strips it
     })
     setSaving(false)
     if (res.ok) {

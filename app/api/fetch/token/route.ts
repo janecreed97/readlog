@@ -23,8 +23,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Token invalid, expired, or already used' }, { status: 404 })
   }
 
-  // Mark single-use
-  await supabase.from('tokens').update({ used: true }).eq('id', tokenId)
-
-  return NextResponse.json(token.payload)
+  // Don't mark used here — mark it when the article is actually saved,
+  // so the popup can reload without losing the preview.
+  return NextResponse.json({ ...token.payload, _tokenId: tokenId })
 }
